@@ -5,7 +5,7 @@ Order of milestones for the MVP and beyond. Each milestone gets its own plan in 
 | # | Milestone | Status | Plan |
 |---|---|---|---|
 | 1 | Overworld: world generation and driving | ✅ Done (PRs #1–#5) | [desert-visuals.md](plans/desert-visuals.md) (visuals phase) |
-| 2 | POI exploration on foot | 📝 Planned (next) | [poi-exploration.md](plans/poi-exploration.md) |
+| 2 | POI exploration on foot | 🚧 In progress (steps 1–3 done, PRs #6–#9) | [poi-exploration.md](plans/poi-exploration.md) |
 | 3 | Turn-based drone battles | ⏳ Not started | — |
 | 4 | Drone building and upgrading | ⏳ Not started | — |
 | 5 | Story mode | ⏳ Not started | — |
@@ -17,7 +17,7 @@ Order of milestones for the MVP and beyond. Each milestone gets its own plan in 
 - Interact with a POI to open a placeholder panel and mark it visited.
 - Linux and Windows export builds. A real Steam Deck benchmark is still outstanding (see [steam-deck.md](steam-deck.md)).
 
-## 2. POI exploration 📝
+## 2. POI exploration 🚧
 - Entering a POI starts a level built from that POI's layout.
 - You start at the parked truck, which is also where you extract.
 - A masked explorer in third person, followed by an exploration drone.
