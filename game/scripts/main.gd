@@ -13,6 +13,15 @@ var _refresh_timer := 0.0
 var _interactable: PoiData
 
 
+# Runs before children's _ready, so the truck is at its saved spot before ChunkManager builds the
+# first chunks around it.
+func _enter_tree() -> void:
+	var truck: Node3D = $Truck
+	var start: Vector2 = GameState.start_position if GameState.start_position != null else Vector2.ZERO
+	truck.position = Vector3(start.x, 0.0, start.y)
+	truck.rotation.y = GameState.start_yaw
+
+
 func _ready() -> void:
 	_truck.terrain = _chunks.terrain
 	_camera.terrain = _chunks.terrain
@@ -27,6 +36,8 @@ func _process(delta: float) -> void:
 	var f := -_camera.global_basis.z
 	_hud.compass.heading = CompassMath.heading_of(Vector2(f.x, f.z))
 	_hud.compass.player_pos = Vector2(_truck.global_position.x, _truck.global_position.z)
+	GameState.truck_world_position = _hud.compass.player_pos
+	GameState.truck_yaw = _truck.rotation.y
 	_refresh_timer -= delta
 	if _refresh_timer <= 0.0:
 		_refresh_timer = POI_REFRESH_INTERVAL

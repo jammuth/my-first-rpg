@@ -32,6 +32,10 @@ func _process(_delta: float) -> bool:
 
 
 func _run_all() -> void:
+	# Tests must never touch the player's real save.
+	var game_state := root.get_node_or_null("GameState")
+	if game_state != null:
+		game_state.saving_enabled = false
 	var filter := ""
 	var user_args := OS.get_cmdline_user_args()
 	if not user_args.is_empty():
