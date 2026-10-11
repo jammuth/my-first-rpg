@@ -110,9 +110,9 @@ func _apply_graphics() -> void:
 	var sun: DirectionalLight3D = $Sun
 	sun.directional_shadow_max_distance = GraphicsSettings.get_value("shadow_distance")
 	RenderingServer.directional_shadow_atlas_set_size(GraphicsSettings.get_value("shadow_atlas"), true)
-	var scale: float = GraphicsSettings.get_value("render_scale")
-	get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if scale < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
-	get_viewport().scaling_3d_scale = scale
+	var render_scale: float = GraphicsSettings.get_value("render_scale")
+	get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if render_scale < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
+	get_viewport().scaling_3d_scale = render_scale
 
 
 func _make_environment() -> Environment:

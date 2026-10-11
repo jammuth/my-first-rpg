@@ -63,7 +63,7 @@ func _finish() -> void:
 		"frame ms: avg %.2f  p50 %.2f  p99 %.2f  max %.2f" % [_stats.average(), _stats.percentile(0.5),
 			_stats.percentile(0.99), _stats.worst()],
 		"avg fps %.0f   peak draw calls %d   peak triangles %dk" % [1000.0 / maxf(_stats.average(), 0.001),
-			_max_draw_calls, _max_triangles / 1000],
+			_max_draw_calls, roundi(_max_triangles / 1000.0)],
 		"frames over 16.7 ms (missed 60 fps): %d   over 33.3 ms: %d" % [_stats.count_over(16.7), _stats.count_over(33.3)],
 	])
 	print(report)

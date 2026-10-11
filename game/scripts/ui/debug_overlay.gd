@@ -46,8 +46,8 @@ func describe() -> String:
 			_stats.average(), _stats.percentile(0.99), _stats.worst()],
 		"draw calls %d   triangles %dk" % [
 			RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME),
-			RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME) / 1000],
-		"video memory %d MB" % (RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED) / 1048576),
+			roundi(RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME) / 1000.0)],
+		"video memory %d MB" % roundi(RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED) / 1048576.0),
 		"preset %s (F4)   render scale %.2f" % [GraphicsSettings.preset_name, GraphicsSettings.get_value("render_scale")],
 	]
 	if chunks != null:
