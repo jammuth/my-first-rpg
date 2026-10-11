@@ -57,3 +57,11 @@ func test_bad_stash_entries_are_dropped() -> void:
 	var expected: Array[Dictionary] = [{"id": "a", "count": 3}]
 	assert_eq(data.stash, expected)
 	assert_near(data.play_time, 0.0)
+
+
+func test_character_round_trips_and_defaults_to_empty() -> void:
+	var data := SaveGame.from_json(SaveGame.to_json(1, {}, Vector2.ZERO, 0.0, {"character": "drifter"}))
+	assert_eq(data.character, "drifter")
+	assert_eq(SaveGame.from_json(SaveGame.to_json(1, {}, Vector2.ZERO, 0.0)).character, "")
+	var bad := SaveGame.from_json('{"version": 2, "world_seed": 1, "visited": [], "truck": {"x": 0, "z": 0, "yaw": 0}, "character": 4}')
+	assert_eq(bad.character, "")

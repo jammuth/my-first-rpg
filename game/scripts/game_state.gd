@@ -25,6 +25,10 @@ var truck_stash: Array[Dictionary] = []
 ## walking away from the POI without unloading.
 var exploration: ExplorationSession = null
 var exploration_poi: PoiData = null
+## Which CharacterOptions look the explorer uses; chosen on the main menu.
+var character_id := CharacterOptions.DEFAULT
+## True once a save file has been read, so the menu can offer Continue.
+var has_save := false
 
 var _autosave_timer := AUTOSAVE_INTERVAL
 
@@ -60,6 +64,23 @@ func mark_visited(poi_id: String) -> void:
 
 func is_visited(poi_id: String) -> bool:
 	return visited_pois.has(poi_id)
+
+
+## Wipes progress back to a fresh world. The chosen character is kept.
+func new_game() -> void:
+	world_seed = DEFAULT_SEED
+	visited_pois = {}
+	start_position = null
+	start_yaw = 0.0
+	truck_world_position = Vector2.ZERO
+	truck_yaw = 0.0
+	origin = Vector3.ZERO
+	play_time = 0.0
+	poi_states = {}
+	truck_stash = []
+	exploration = null
+	exploration_poi = null
+	save_game()
 
 
 func poi_state(poi_id: String) -> PoiState:
@@ -103,6 +124,7 @@ func save_game() -> void:
 		"play_time": play_time,
 		"poi_states": poi_states,
 		"stash": truck_stash,
+		"character": character_id,
 	}))
 
 
@@ -122,3 +144,6 @@ func load_game() -> void:
 	play_time = data.play_time
 	poi_states = data.poi_states
 	truck_stash = data.stash
+	if CharacterOptions.is_valid(data.character):
+		character_id = data.character
+	has_save = true

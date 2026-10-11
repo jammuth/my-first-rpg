@@ -9,7 +9,8 @@ const VERSION := 2
 const READABLE_VERSIONS := [1, 2]
 
 
-## progress (all optional): play_time: float, poi_states: {id: PoiState}, stash: Array[Dictionary].
+## progress (all optional): play_time: float, poi_states: {id: PoiState}, stash: Array[Dictionary],
+## character: String.
 static func to_json(world_seed: int, visited: Dictionary, truck_position: Vector2, truck_yaw: float,
 		progress := {}) -> String:
 	var ids: Array = visited.keys()
@@ -28,12 +29,13 @@ static func to_json(world_seed: int, visited: Dictionary, truck_position: Vector
 		"play_time": float(progress.get("play_time", 0.0)),
 		"pois": pois,
 		"stash": progress.get("stash", []),
+		"character": String(progress.get("character", "")),
 	}, "\t")
 
 
 ## Returns {world_seed, visited: Dictionary, truck_position: Vector2, truck_yaw, play_time: float,
-## poi_states: {id: PoiState}, stash: Array[Dictionary]} or {} when the text isn't a save this
-## version understands (callers then start a fresh game).
+## poi_states: {id: PoiState}, stash: Array[Dictionary], character: String ("" if absent)} or {} when
+## the text isn't a save this version understands (callers then start a fresh game).
 static func from_json(text: String) -> Dictionary:
 	var json := JSON.new()
 	if json.parse(text) != OK:
@@ -68,6 +70,7 @@ static func from_json(text: String) -> Dictionary:
 		"play_time": play_time if play_time is float and play_time >= 0.0 else 0.0,
 		"poi_states": poi_states,
 		"stash": _read_stacks(data.get("stash")),
+		"character": data.character if data.get("character") is String else "",
 	}
 
 
