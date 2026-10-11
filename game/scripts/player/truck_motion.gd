@@ -8,3 +8,10 @@ static func step_speed(speed: float, throttle: float, delta: float, max_speed: f
 	var target := throttle * (max_speed if throttle >= 0.0 else reverse_speed)
 	var speeding_up := absf(target) > absf(speed) and (is_zero_approx(speed) or signf(target) == signf(speed))
 	return move_toward(speed, target, (acceleration if speeding_up else braking) * delta)
+
+
+## Pitch (nose up positive, about +X) and roll (right side up positive, about +Z) from terrain
+## heights under the truck's front/back/left/right sample points.
+static func tilt_from_heights(front: float, back: float, left: float, right: float,
+		length: float, width: float) -> Vector2:
+	return Vector2(atan2(front - back, length), atan2(right - left, width))

@@ -1,18 +1,23 @@
 extends Node3D
 
 const POI_REFRESH_INTERVAL := 0.2
-const FOG_BEGIN := 140.0
-const FOG_END := 290.0
+const FOG_BEGIN := 200.0
+const FOG_END := 500.0
 
 @onready var _truck: Truck = $Truck
 @onready var _camera: Camera3D = $FollowCamera
 @onready var _hud: Hud = $Hud
+@onready var _chunks: ChunkManager = $ChunkManager
 
 var _refresh_timer := 0.0
 var _interactable: PoiData
 
 
 func _ready() -> void:
+	_truck.terrain = _chunks.terrain
+	_camera.terrain = _chunks.terrain
+	_truck.snap_to_terrain()
+	_truck.reset_physics_interpolation()
 	$WorldEnvironment.environment = _make_environment()
 	_hud.poi_panel_closed.connect(func() -> void: _truck.controls_enabled = true)
 	_refresh_pois()

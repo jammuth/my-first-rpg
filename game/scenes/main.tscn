@@ -1,19 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/truck.tscn" id="2_truck"]
 [ext_resource type="Script" path="res://scripts/world/chunk_manager.gd" id="3_chunks"]
-[ext_resource type="Script" path="res://scripts/world/ground.gd" id="4_ground"]
-[ext_resource type="Shader" path="res://shaders/ground.gdshader" id="5_ground_shader"]
 [ext_resource type="Script" path="res://scripts/player/follow_camera.gd" id="6_camera"]
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="7_hud"]
 [ext_resource type="Script" path="res://scripts/world/blowing_sand.gd" id="8_sand"]
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(1200, 1200)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
-shader = ExtResource("5_ground_shader")
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -30,13 +22,6 @@ directional_shadow_max_distance = 140.0
 
 [node name="Truck" parent="." instance=ExtResource("2_truck")]
 
-[node name="Ground" type="MeshInstance3D" parent="."]
-mesh = SubResource("PlaneMesh_ground")
-material_override = SubResource("ShaderMaterial_ground")
-cast_shadow = 0
-script = ExtResource("4_ground")
-target_path = NodePath("../Truck")
-
 [node name="ChunkManager" type="Node3D" parent="."]
 script = ExtResource("3_chunks")
 target_path = NodePath("../Truck")
@@ -47,7 +32,7 @@ target_path = NodePath("../Truck")
 
 [node name="FollowCamera" type="Camera3D" parent="."]
 fov = 55.0
-far = 400.0
+far = 800.0
 script = ExtResource("6_camera")
 target_path = NodePath("../Truck")
 

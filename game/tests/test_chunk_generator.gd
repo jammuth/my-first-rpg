@@ -46,8 +46,14 @@ func test_road_mesh_matches_segments() -> void:
 	var found := false
 	for x in range(-4, 4):
 		var data := ChunkGenerator.generate(SEED, Vector2i(x, 0))
-		assert_eq(data.road_vertices.size(), data.road_segments.size() * 4)
-		assert_eq(data.road_indices.size(), data.road_segments.size() * 6)
+		var verts := 0
+		var tris := 0
+		for seg in data.road_segments:
+			var steps := maxi(1, ceili(seg[0].distance_to(seg[1]) / ChunkGenerator.ROAD_SAMPLE_STEP))
+			verts += (steps + 1) * 2
+			tris += steps * 2
+		assert_eq(data.road_vertices.size(), verts)
+		assert_eq(data.road_indices.size(), tris * 3)
 		assert_eq(data.road_uvs.size(), data.road_vertices.size())
 		if not data.road_segments.is_empty():
 			found = true
@@ -63,3 +69,25 @@ func test_pois_belong_to_one_chunk() -> void:
 	assert_true(counts.size() > 0)
 	for id in counts:
 		assert_eq(counts[id], 1, "poi %s" % id)
+
+
+func test_props_and_pois_sit_on_terrain() -> void:
+	var sampler := TerrainSampler.new(SEED)
+	for x in range(-2, 2):
+		var data := ChunkGenerator.generate(SEED, Vector2i(x, 1), sampler)
+		for k in data.props:
+			for t: Transform3D in data.props[k]:
+				assert_near(t.origin.y, sampler.height_at(t.origin.x, t.origin.z), 0.001, "prop height")
+		for poi in data.pois:
+			assert_near(poi.position.y, sampler.poi_height(poi), 0.001, "poi height")
+
+
+func test_road_ribbon_hugs_terrain() -> void:
+	var sampler := TerrainSampler.new(SEED)
+	var checked := 0
+	for x in range(-4, 4):
+		var data := ChunkGenerator.generate(SEED, Vector2i(x, 0), sampler)
+		for v in data.road_vertices:
+			assert_near(v.y - sampler.height_at(v.x, v.z), ChunkGenerator.ROAD_HEIGHT, 0.001)
+			checked += 1
+	assert_true(checked > 0)

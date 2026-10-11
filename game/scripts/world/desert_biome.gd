@@ -9,6 +9,9 @@ func _init() -> void:
 	poi_chance = 0.6
 	ground_color_a = Color(0.85, 0.71, 0.49)
 	ground_color_b = Color(0.77, 0.60, 0.40)
+	terrain_swell = Vector2(14.0, 1400.0)
+	terrain_dunes = Vector2(8.0, 380.0)
+	terrain_ridges = Vector2(3.0, 150.0)
 	poi_types = [
 		{"id": "scrapyard", "label": "Scrapyard", "weight": 3.0, "scale": 9.0, "plaza_radius": 22.0,
 			"models": [MODELS + "industrial/building-a.glb", MODELS + "industrial/building-o.glb"]},

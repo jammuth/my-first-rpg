@@ -7,6 +7,11 @@ var id: String
 var poi_chance: float = 0.5
 var ground_color_a: Color
 var ground_color_b: Color
+## Terrain layers as [amplitude_m, wavelength_m]; heights are summed.
+var terrain_swell := Vector2(0.0, 1.0)
+var terrain_dunes := Vector2(0.0, 1.0)
+## Ridged noise for sharper dune crests.
+var terrain_ridges := Vector2(0.0, 1.0)
 ## Each: {id, label, models: Array[String], scale: float, plaza_radius: float, weight: float}
 var poi_types: Array[Dictionary] = []
 ## Each: {id, path, per_hectare: float, min_scale, max_scale, solid: bool, radius: float}
