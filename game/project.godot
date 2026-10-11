@@ -84,6 +84,17 @@ camera_down={
 
 common/physics_interpolation=true
 
+[shader_globals]
+
+wind_direction={
+"type": "vec2",
+"value": Vector2(0.8, 0.6)
+}
+wind_strength={
+"type": "float",
+"value": 1.0
+}
+
 [rendering]
 
 renderer/rendering_method="forward_plus"
