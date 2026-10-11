@@ -27,6 +27,7 @@ static func generate(world_seed: int, cell: Vector2i, sampler: TerrainSampler = 
 		var clipped := Geometry2DUtil.clip_segment_to_rect(road.a, road.b, rect)
 		if not clipped.is_empty() and clipped[0].distance_squared_to(clipped[1]) > 0.0001:
 			data.road_segments.append(clipped)
+			data.road_ends.append(PackedVector2Array([road.a, road.b]))
 	_build_road_mesh(data, sampler)
 	data.pois = PoiGenerator.pois_in_rect(world_seed, rect)
 	for poi in data.pois:
@@ -42,7 +43,9 @@ static func generate(world_seed: int, cell: Vector2i, sampler: TerrainSampler = 
 
 
 static func _build_road_mesh(data: ChunkData, sampler: TerrainSampler) -> void:
-	for seg in data.road_segments:
+	for s in data.road_segments.size():
+		var seg := data.road_segments[s]
+		var ends := data.road_ends[s]
 		var a := seg[0]
 		var b := seg[1]
 		var length := a.distance_to(b)
@@ -59,6 +62,9 @@ static func _build_road_mesh(data: ChunkData, sampler: TerrainSampler) -> void:
 			# V runs in world distance along the road so markings line up across chunk seams.
 			var v := p.dot(dir) / RoadNetwork.WIDTH
 			data.road_uvs.append_array(PackedVector2Array([Vector2(0, v), Vector2(1, v)]))
+			# Roads always end at POI centres; the shader blends overlapping ends there using this.
+			var to_end := minf(p.distance_to(ends[0]), p.distance_to(ends[1]))
+			data.road_uv2s.append_array(PackedVector2Array([Vector2(to_end, 0), Vector2(to_end, 0)]))
 			if i > 0:
 				var k := base + (i - 1) * 2
 				data.road_indices.append_array(PackedInt32Array([k, k + 2, k + 1, k + 1, k + 2, k + 3]))

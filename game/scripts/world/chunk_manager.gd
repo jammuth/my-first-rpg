@@ -207,6 +207,7 @@ func _build_content(data: ChunkData) -> void:
 		arrays.resize(Mesh.ARRAY_MAX)
 		arrays[Mesh.ARRAY_VERTEX] = data.road_vertices
 		arrays[Mesh.ARRAY_TEX_UV] = data.road_uvs
+		arrays[Mesh.ARRAY_TEX_UV2] = data.road_uv2s
 		arrays[Mesh.ARRAY_INDEX] = data.road_indices
 		var normals := PackedVector3Array()
 		normals.resize(data.road_vertices.size())

@@ -55,6 +55,8 @@ func test_road_mesh_matches_segments() -> void:
 		assert_eq(data.road_vertices.size(), verts)
 		assert_eq(data.road_indices.size(), tris * 3)
 		assert_eq(data.road_uvs.size(), data.road_vertices.size())
+		assert_eq(data.road_uv2s.size(), data.road_vertices.size())
+		assert_eq(data.road_ends.size(), data.road_segments.size())
 		if not data.road_segments.is_empty():
 			found = true
 	assert_true(found, "expected some roads in a row of 8 chunks")
@@ -110,3 +112,21 @@ func test_no_props_on_cliff_faces() -> void:
 func test_every_prop_model_exists() -> void:
 	for def in BiomeMap.biome_at_cell(SEED, Vector2i.ZERO).props:
 		assert_true(ResourceLoader.exists(def.path), "missing prop model " + def.path)
+
+
+func test_road_uv2_is_distance_to_nearest_road_end() -> void:
+	var checked := 0
+	for x in range(-4, 4):
+		var data := ChunkGenerator.generate(SEED, Vector2i(x, 0))
+		var vi := 0
+		for s in data.road_segments.size():
+			var seg := data.road_segments[s]
+			var ends := data.road_ends[s]
+			var steps := maxi(1, ceili(seg[0].distance_to(seg[1]) / ChunkGenerator.ROAD_SAMPLE_STEP))
+			for i in steps + 1:
+				var p := seg[0].lerp(seg[1], float(i) / steps)
+				var expected := minf(p.distance_to(ends[0]), p.distance_to(ends[1]))
+				assert_near(data.road_uv2s[vi].x, expected, 0.01)
+				vi += 2
+				checked += 1
+	assert_true(checked > 10)
