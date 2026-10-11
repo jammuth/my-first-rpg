@@ -17,7 +17,7 @@ varying vec3 world_pos;
 varying vec3 world_normal;
 
 void vertex() {
-	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz + world_origin;
 	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 

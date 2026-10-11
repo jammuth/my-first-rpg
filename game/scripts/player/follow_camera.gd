@@ -97,6 +97,7 @@ func _place(t: Transform3D) -> void:
 	var pitch := deg_to_rad(pitch_degrees) + _orbit.y
 	var pos := focus + offset_for(_yaw + _orbit.x, pitch, distance)
 	if terrain != null:
-		pos.y = maxf(pos.y, terrain.height_at(pos.x, pos.z) + ground_clearance)
+		var world := pos + GameState.origin
+		pos.y = maxf(pos.y, terrain.height_at(world.x, world.z) + ground_clearance)
 	global_position = pos
 	look_at(focus, Vector3.UP)

@@ -13,6 +13,8 @@ var start_yaw := 0.0
 var truck_world_position := Vector2.ZERO
 var truck_yaw := 0.0
 var saving_enabled := true
+## Floating origin: world = local + origin (see WorldOrigin). Owned by main.gd.
+var origin := Vector3.ZERO
 
 var _autosave_timer := AUTOSAVE_INTERVAL
 

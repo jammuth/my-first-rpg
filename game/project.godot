@@ -90,6 +90,10 @@ wind_direction={
 "type": "vec2",
 "value": Vector2(0.8, 0.6)
 }
+world_origin={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}
 wind_strength={
 "type": "float",
 "value": 1.0

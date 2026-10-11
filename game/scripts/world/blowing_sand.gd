@@ -14,6 +14,7 @@ var _target: Node3D
 
 
 func _ready() -> void:
+	add_to_group("origin_shift_listeners")
 	_target = get_node(target_path)
 	var wind: Vector2 = ProjectSettings.get_setting("shader_globals/wind_direction").value
 	var strength: float = ProjectSettings.get_setting("shader_globals/wind_strength").value
@@ -78,3 +79,9 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	global_position = _target.global_position + Vector3(0, area_size.y * 0.5, 0)
+
+
+## World-space particles can't be moved with the world, so start fresh after an origin shift.
+func on_origin_shifted(_shift: Vector3) -> void:
+	global_position = _target.global_position + Vector3(0, area_size.y * 0.5, 0)
+	restart()

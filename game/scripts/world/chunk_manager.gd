@@ -40,6 +40,8 @@ var _terrain_material: ShaderMaterial
 
 
 func _ready() -> void:
+	# Chunk content is built in world coordinates; this node carries the floating-origin offset.
+	position = -GameState.origin
 	world_seed = GameState.world_seed
 	terrain = TerrainSampler.new(world_seed)
 	_target = get_node(target_path)
@@ -96,7 +98,7 @@ func loaded_terrain_count() -> int:
 
 
 func _center_cell() -> Vector2i:
-	return ChunkMath.world_to_cell(_target.global_position, ChunkGenerator.CHUNK_SIZE)
+	return ChunkMath.world_to_cell(_target.global_position + GameState.origin, ChunkGenerator.CHUNK_SIZE)
 
 
 func _unload_far(center: Vector2i) -> void:

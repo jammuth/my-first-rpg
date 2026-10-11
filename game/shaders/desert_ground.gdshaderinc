@@ -3,6 +3,8 @@
 
 global uniform vec2 wind_direction;
 global uniform float wind_strength;
+/** Floating origin (see WorldOrigin): adds back what the scene was shifted by. */
+global uniform vec3 world_origin;
 
 uniform vec4 color_a : source_color = vec4(0.85, 0.71, 0.49, 1.0);
 uniform vec4 color_b : source_color = vec4(0.77, 0.60, 0.40, 1.0);
