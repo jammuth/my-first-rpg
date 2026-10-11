@@ -42,7 +42,8 @@ func _init(seed_value: int) -> void:
 	_setup(_mesa_detail, base + 4, FastNoiseLite.TYPE_SIMPLEX, FastNoiseLite.FRACTAL_FBM, 2, 35.0)
 
 
-static func _setup(n: FastNoiseLite, seed_value: int, type: int, fractal: int, octaves: int,
+static func _setup(n: FastNoiseLite, seed_value: int, type: FastNoiseLite.NoiseType,
+		fractal: FastNoiseLite.FractalType, octaves: int,
 		wavelength: float) -> void:
 	n.seed = seed_value
 	n.noise_type = type
