@@ -69,3 +69,7 @@ logs/
 *.tmp
 *.temp
 .cache/
+
+# == Art Source ==
+art_source/
+

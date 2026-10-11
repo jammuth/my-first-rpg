@@ -9,8 +9,23 @@ This file is read automatically by Claude Code at the start of every session in 
 
 ## Project Overview
 
-<!-- FILL IN PER PROJECT -->
-<!-- 2-4 sentences: what this project is, who it's for, and any context that should change how Claude approaches it (e.g. "payment logic, correctness is non-negotiable" vs "hobby project, move fast"). -->
+A 3D game using the Godot engine using the MCP server. The game will be an rpg that has turn-based combat. 
+
+The protaganist, a scientist/engineer who builds and repairs the unmanned drones controlled to fight and scavenge for parts to build and upgrade drones. 
+
+Drones will be robots that are built from different components (left arm might be a machine gun, the right a grenade launcher, the head could have enhanced scanners that grant the ability to scan for weaknesses increasing hit chance for the next few turns, or the head could have a smoke launcher that could decrease the enemies hit chance, etc.), I am taking inspiration from Medabots heavily.
+
+The protaganist drives around in his mobile workshop, scavenging parts from wrecked cities. A world ending event has left the planet in a ruin where Humans are a dying breed. Small cities exist but are far apart that they all need to be self-suficient. 
+
+There will be a story mode later, however the MVP is a driving around from point of interest to point of interest and fighting battle to upgrade drones.
+
+### Tools
+- use the latest Godot engine
+- use the MCP server
+- as this is a 3d game we will use the forward+ renderer, i plan to release this on Linux/windows and also the SteamDeck
+- use the assets from the art_source
+- if any asset is needed, it needs to be free to download and also have a cc0 lisence. Ask before downloading, give source and then download it to the art_source folder so it can be kept.
+- only copy needed assets to the godot project to keep the project size small.
 
 ---
 
