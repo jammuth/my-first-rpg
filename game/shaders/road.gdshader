@@ -14,10 +14,7 @@ uniform vec3 line_color : source_color = vec3(0.85, 0.74, 0.40);
 uniform float edge_sand : hint_range(0.0, 1.0) = 0.35;
 /** How much sand pools in patches across the whole road surface. */
 uniform float patch_sand : hint_range(0.0, 1.0) = 0.6;
-/** Distance from a road's end (POI centre) over which its per-road details fade out. All roads
- * into a POI overlap there; with only world-space detail left they render identically, so the
- * overlapping ribbons can't z-fight visibly. */
-uniform float junction_length = 22.0;
+
 
 varying vec3 world_pos;
 
@@ -42,14 +39,23 @@ void fragment() {
 	// UV.x runs across the road and UV.y along it, in road widths, so dashes follow the road.
 	float centre = 1.0 - step(0.035, abs(UV.x - 0.5));
 	float dash = step(0.5, fract(UV.y * 0.5)) * centre;
-	float junction = 1.0 - smoothstep(junction_length - 8.0, junction_length, UV2.x);
+	// UV2.x is distance to the road's nearer end in units of that POI's junction pad radius. Inside
+	// the pad roads drop their edge sand and centre line, so they're plain asphalt like the pad and
+	// overlapping road ends render identically. UV2.y = 1 marks the pad itself (keeps its rim sand).
+	// The fade starts at RoadNetwork.JUNCTION_CORE and tracks the pad's own sandy rim (edge_sand).
+	float junction = (1.0 - smoothstep(0.6, 0.85, UV2.x)) * (1.0 - UV2.y);
 	dash *= 1.0 - junction;
 	float worn = smoothstep(0.25, 0.65, noise(p * 0.4));
 	asphalt = mix(asphalt, line_color, dash * worn * 0.85);
 
 	float edge = abs(UV.x - 0.5) * 2.0;
 	float edge_cover = smoothstep(1.0 - edge_sand, 1.0, edge + (noise(p * 0.12) - 0.5) * 0.35) * (1.0 - junction);
-	float patch_cover = smoothstep(0.62, 0.85, noise(p * 0.035) * 0.7 + noise(p * 0.2) * 0.3) * patch_sand;
+	// Value noise has axis-aligned cell artefacts that a sharp threshold turns into stair-stepped
+	// rectangles; sampling two octaves on rotated, offset grids breaks the alignment up.
+	vec2 q1 = mat2(vec2(0.866, 0.5), vec2(-0.5, 0.866)) * p;
+	vec2 q2 = mat2(vec2(0.342, 0.940), vec2(-0.940, 0.342)) * p + vec2(37.0, 11.0);
+	float drift_n = noise(q1 * 0.035) * 0.6 + noise(q2 * 0.09) * 0.25 + noise(q1 * 0.31) * 0.15;
+	float patch_cover = smoothstep(0.56, 0.86, drift_n) * patch_sand;
 	float cover = clamp(max(edge_cover, patch_cover), 0.0, 1.0);
 
 	ALBEDO = mix(asphalt, sand, cover);

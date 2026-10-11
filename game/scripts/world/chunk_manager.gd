@@ -202,20 +202,15 @@ func _build_content(data: ChunkData) -> void:
 	var chunk := Node3D.new()
 	chunk.name = "Chunk_%d_%d" % [data.cell.x, data.cell.y]
 
-	if not data.road_vertices.is_empty():
-		var arrays := []
-		arrays.resize(Mesh.ARRAY_MAX)
-		arrays[Mesh.ARRAY_VERTEX] = data.road_vertices
-		arrays[Mesh.ARRAY_TEX_UV] = data.road_uvs
-		arrays[Mesh.ARRAY_TEX_UV2] = data.road_uv2s
-		arrays[Mesh.ARRAY_INDEX] = data.road_indices
-		var normals := PackedVector3Array()
-		normals.resize(data.road_vertices.size())
-		normals.fill(Vector3.UP)
-		arrays[Mesh.ARRAY_NORMAL] = normals
+	if not data.road_vertices.is_empty() or not data.junction_vertices.is_empty():
 		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		mesh.surface_set_material(0, _road_material)
+		if not data.road_vertices.is_empty():
+			_add_road_surface(mesh, data.road_vertices, data.road_uvs, data.road_uv2s, data.road_indices)
+		if not data.junction_vertices.is_empty():
+			var pad_uv2 := PackedVector2Array()
+			pad_uv2.resize(data.junction_vertices.size())
+			pad_uv2.fill(Vector2(0.0, 1.0))
+			_add_road_surface(mesh, data.junction_vertices, data.junction_uvs, pad_uv2, data.junction_indices)
 		var road := MeshInstance3D.new()
 		road.mesh = mesh
 		road.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -257,6 +252,22 @@ func _build_content(data: ChunkData) -> void:
 
 	add_child(chunk)
 	_content[data.cell] = chunk
+
+
+func _add_road_surface(mesh: ArrayMesh, vertices: PackedVector3Array, uvs: PackedVector2Array,
+		uv2s: PackedVector2Array, indices: PackedInt32Array) -> void:
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_TEX_UV2] = uv2s
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var normals := PackedVector3Array()
+	normals.resize(vertices.size())
+	normals.fill(Vector3.UP)
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	mesh.surface_set_material(mesh.get_surface_count() - 1, _road_material)
 
 
 func _prop_def(biome: Biome, prop_id: String) -> Dictionary:

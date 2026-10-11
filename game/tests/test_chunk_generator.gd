@@ -114,7 +114,7 @@ func test_every_prop_model_exists() -> void:
 		assert_true(ResourceLoader.exists(def.path), "missing prop model " + def.path)
 
 
-func test_road_uv2_is_distance_to_nearest_road_end() -> void:
+func test_road_uv2_is_relative_distance_to_nearest_junction() -> void:
 	var checked := 0
 	for x in range(-4, 4):
 		var data := ChunkGenerator.generate(SEED, Vector2i(x, 0))
@@ -122,11 +122,38 @@ func test_road_uv2_is_distance_to_nearest_road_end() -> void:
 		for s in data.road_segments.size():
 			var seg := data.road_segments[s]
 			var ends := data.road_ends[s]
+			var r0 := ChunkGenerator.poi_junction_radius(SEED, PoiGenerator.world_to_cell(Vector3(ends[0].x, 0, ends[0].y)))
+			var r1 := ChunkGenerator.poi_junction_radius(SEED, PoiGenerator.world_to_cell(Vector3(ends[1].x, 0, ends[1].y)))
 			var steps := maxi(1, ceili(seg[0].distance_to(seg[1]) / ChunkGenerator.ROAD_SAMPLE_STEP))
 			for i in steps + 1:
 				var p := seg[0].lerp(seg[1], float(i) / steps)
-				var expected := minf(p.distance_to(ends[0]), p.distance_to(ends[1]))
+				var expected := minf(p.distance_to(ends[0]) / r0, p.distance_to(ends[1]) / r1)
 				assert_near(data.road_uv2s[vi].x, expected, 0.01)
 				vi += 2
 				checked += 1
 	assert_true(checked > 10)
+
+
+func test_junction_pads_under_roads_at_connected_pois() -> void:
+	var sampler := TerrainSampler.new(SEED)
+	var pads := 0
+	for x in range(-5, 5):
+		for z in range(-5, 5):
+			var data := ChunkGenerator.generate(SEED, Vector2i(x, z), sampler)
+			var with_roads := 0
+			for poi in data.pois:
+				var cell := ChunkMath.world_to_cell(poi.position, ChunkGenerator.CHUNK_SIZE)
+				if not PoiPlanner.road_directions(poi, sampler.influences_for_cell(cell).roads).is_empty():
+					with_roads += 1
+					var pad_y := poi.position.y + ChunkGenerator.ROAD_HEIGHT - ChunkGenerator.JUNCTION_DROP
+					var centre := data.junction_vertices.find(Vector3(poi.position.x, pad_y, poi.position.z))
+					assert_true(centre >= 0, "no pad centred on " + poi.id)
+					# Every road vertex over the pad must sit above it.
+					var radius := ChunkGenerator.poi_junction_radius(SEED, poi.cell)
+					for v in data.road_vertices:
+						var pad_here := sampler.height_at(v.x, v.z) + ChunkGenerator.ROAD_HEIGHT - ChunkGenerator.JUNCTION_DROP
+						if Vector2(v.x, v.z).distance_to(poi.position_2d()) < radius:
+							assert_true(v.y > pad_here + 0.01, "road under pad at " + poi.id)
+			assert_eq(data.junction_vertices.size(), with_roads * (ChunkGenerator.JUNCTION_SEGMENTS * 2 + 1))
+			pads += with_roads
+	assert_true(pads > 3, "only %d pads" % pads)
