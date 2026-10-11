@@ -25,7 +25,8 @@ var mesa_jaggedness := 0.03
 ## Each: {id, label, models: Array[String], scale: float, plaza_radius: float, weight: float}
 var poi_types: Array[Dictionary] = []
 ## Each: {id, path, per_hectare: float, min_scale, max_scale, solid: bool, radius: float}
-## `radius` is the footprint at scale 1, used for collision and spacing.
+## `radius` is the footprint at scale 1, used for collision and spacing. Optional `sink` (metres
+## at scale 1) buries the base so props don't float on the downhill side of slopes.
 var props: Array[Dictionary] = []
 
 

@@ -82,7 +82,7 @@ static func _scatter_props(world_seed: int, cell: Vector2i, rect: Rect2,
 			if sampler.normal_at(p.x, p.y, 1.5).y < PROP_MIN_NORMAL_Y:
 				continue
 			var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * s)
-			var pos := Vector3(p.x, sampler.height_at(p.x, p.y), p.y)
+			var pos := Vector3(p.x, sampler.height_at(p.x, p.y) - def.get("sink", 0.0) * s, p.y)
 			transforms.append(Transform3D(basis, pos))
 			if def.solid:
 				data.solids.append({"position": pos, "radius": footprint})

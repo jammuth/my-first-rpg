@@ -73,11 +73,16 @@ func test_pois_belong_to_one_chunk() -> void:
 
 func test_props_and_pois_sit_on_terrain() -> void:
 	var sampler := TerrainSampler.new(SEED)
+	var defs := {}
+	for def in BiomeMap.biome_at_cell(SEED, Vector2i.ZERO).props:
+		defs[def.id] = def
 	for x in range(-2, 2):
 		var data := ChunkGenerator.generate(SEED, Vector2i(x, 1), sampler)
 		for k in data.props:
+			var sink: float = defs[k].get("sink", 0.0)
 			for t: Transform3D in data.props[k]:
-				assert_near(t.origin.y, sampler.height_at(t.origin.x, t.origin.z), 0.001, "prop height")
+				var expected := sampler.height_at(t.origin.x, t.origin.z) - sink * t.basis.get_scale().x
+				assert_near(t.origin.y, expected, 0.001, "prop height")
 		for poi in data.pois:
 			assert_near(poi.position.y, sampler.poi_height(poi), 0.001, "poi height")
 
@@ -100,3 +105,8 @@ func test_no_props_on_cliff_faces() -> void:
 		for k in data.props:
 			for t: Transform3D in data.props[k]:
 				assert_true(sampler.normal_at(t.origin.x, t.origin.z, 1.5).y >= ChunkGenerator.PROP_MIN_NORMAL_Y)
+
+
+func test_every_prop_model_exists() -> void:
+	for def in BiomeMap.biome_at_cell(SEED, Vector2i.ZERO).props:
+		assert_true(ResourceLoader.exists(def.path), "missing prop model " + def.path)

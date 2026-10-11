@@ -7,6 +7,7 @@ extends Node3D
 
 const CONTENT := -1
 const TERRAIN_TEXTURES := "res://assets/textures/terrain/"
+const PROP_VIEW_DISTANCE := 250.0
 
 @export var target_path: NodePath
 @export var content_radius := 2
@@ -226,6 +227,10 @@ func _build_content(data: ChunkData) -> void:
 			mm.set_instance_transform(i, transforms[i] * entry.transform)
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
+		# Props are small next to the fogged-out view distance; skipping far ones saves triangles.
+		mmi.visibility_range_end = PROP_VIEW_DISTANCE
+		mmi.visibility_range_end_margin = 20.0
+		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		chunk.add_child(mmi)
 
 	if not data.solids.is_empty():

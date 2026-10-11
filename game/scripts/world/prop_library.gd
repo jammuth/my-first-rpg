@@ -1,7 +1,8 @@
 class_name PropLibrary
 extends RefCounted
 
-## Main-thread cache of single meshes pulled out of prop model scenes, for use in MultiMeshes.
+## Main-thread cache of prop meshes for MultiMeshes: either a Mesh resource used as-is, or the
+## first mesh pulled out of a model scene.
 
 var _entries := {}
 
@@ -10,7 +11,11 @@ var _entries := {}
 func get_entry(path: String) -> Dictionary:
 	if _entries.has(path):
 		return _entries[path]
-	var root: Node3D = load(path).instantiate()
+	var res: Resource = load(path)
+	if res is Mesh:
+		_entries[path] = {"mesh": res, "transform": Transform3D.IDENTITY}
+		return _entries[path]
+	var root: Node3D = (res as PackedScene).instantiate()
 	var mi: MeshInstance3D = root.find_children("*", "MeshInstance3D", true, false)[0]
 	var xform := Transform3D.IDENTITY
 	var n: Node = mi
