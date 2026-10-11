@@ -56,7 +56,7 @@ Decisions already made with me — don't re-ask these. Battle mechanics are expl
 - Controller support matters (Steam Deck), not just keyboard.
 
 **Camera**
-- **High angled follow camera**: sits behind and well above the truck (~45–55° down) and rotates with the truck's heading.
+- **Low follow camera** (changed 2026-10-11 from the original 45–55°): sits behind the truck at the lowest orbit pitch (12° down) so the player can see where they are going, and rotates with the truck's heading. Right mouse / right stick orbits; it eases back on release.
 
 **UI**
 - **Compass bar at the top of the screen** with indicators for the **3 closest POIs**.

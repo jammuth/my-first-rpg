@@ -2,13 +2,19 @@ class_name FollowCamera
 extends Camera3D
 
 @export var target_path: NodePath
-@export var distance := 36.0
-@export_range(20.0, 80.0) var pitch_degrees := 45.0
-@export var look_height := 2.0
+@export var distance := 26.0
+## Default view: as low as the orbit allows (min_pitch_degrees), so the road ahead is visible.
+@export_range(5.0, 80.0) var pitch_degrees := 12.0
+@export var look_height := 3.0
 ## Higher = camera swings round to the truck's heading faster.
 @export var yaw_sharpness := 4.0
 ## Minimum height above the ground directly below the camera, so low orbits can't clip into dunes.
 @export var ground_clearance := 3.0
+## Ground along the camera's line of sight is kept at least this far below it, raising the camera
+## over dune crests so the truck is never hidden behind terrain.
+@export var sight_margin := 1.5
+## Higher = camera rises/settles over crests faster.
+@export var lift_sharpness := 5.0
 
 @export_group("Orbit")
 ## Radians of orbit per pixel of mouse movement while right mouse is held.
@@ -27,6 +33,9 @@ var _yaw := 0.0
 ## Offset from the default view: x = yaw (radians), y = pitch (radians).
 var _orbit := Vector2.ZERO
 var _mouse_orbiting := false
+var _lift := 0.0
+
+const SIGHT_SAMPLES: Array[float] = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0]
 
 
 static func offset_for(yaw: float, pitch_radians: float, dist: float) -> Vector3:
@@ -77,7 +86,7 @@ func _process(delta: float) -> void:
 		_orbit = orbit_return(_orbit, return_sharpness, delta)
 	var t := _target.get_global_transform_interpolated()
 	_yaw = lerp_angle(_yaw, t.basis.get_euler().y, 1.0 - exp(-yaw_sharpness * delta))
-	_place(t)
+	_place(t, delta)
 
 
 func _set_mouse_orbiting(active: bool) -> void:
@@ -92,11 +101,32 @@ func _drag(delta_radians: Vector2) -> void:
 		deg_to_rad(min_pitch_degrees), deg_to_rad(max_pitch_degrees))
 
 
-func _place(t: Transform3D) -> void:
+## How far the camera must rise so the ground, sampled at fractions `ts` along the line from
+## `focus` (0) to `cam` (1), stays `margin` below the line of sight. Raising the camera by L lifts
+## the line by L * t at fraction t.
+static func sight_lift(focus: Vector3, cam: Vector3, ts: Array[float], ground: PackedFloat32Array,
+		margin: float) -> float:
+	var lift := 0.0
+	for i in ts.size():
+		var line_y := lerpf(focus.y, cam.y, ts[i])
+		var shortfall := ground[i] + margin - line_y
+		if shortfall > 0.0:
+			lift = maxf(lift, shortfall / ts[i])
+	return lift
+
+
+func _place(t: Transform3D, delta: float = 0.0) -> void:
 	var focus := t.origin + Vector3.UP * look_height
 	var pitch := deg_to_rad(pitch_degrees) + _orbit.y
 	var pos := focus + offset_for(_yaw + _orbit.x, pitch, distance)
 	if terrain != null:
+		var ground := PackedFloat32Array()
+		for f in SIGHT_SAMPLES:
+			var w := focus.lerp(pos, f) + GameState.origin
+			ground.append(terrain.height_at(w.x, w.z))
+		var target_lift := sight_lift(focus, pos, SIGHT_SAMPLES, ground, sight_margin)
+		_lift = target_lift if delta <= 0.0 else lerpf(_lift, target_lift, 1.0 - exp(-lift_sharpness * delta))
+		pos.y += _lift
 		var world := pos + GameState.origin
 		pos.y = maxf(pos.y, terrain.height_at(world.x, world.z) + ground_clearance)
 	global_position = pos

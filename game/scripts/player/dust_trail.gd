@@ -5,7 +5,7 @@ extends GPUParticles3D
 
 @export var max_puffs := 140
 @export var puff_size := 2.2
-@export var color := Color(0.88, 0.75, 0.52, 0.45)
+@export var color := Color(0.88, 0.75, 0.52, 0.32)
 ## Below this speed (m/s) nothing is kicked up.
 @export var min_speed := 1.5
 @export var paved_factor := 0.2
