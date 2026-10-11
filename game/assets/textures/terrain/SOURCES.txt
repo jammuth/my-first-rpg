@@ -1,0 +1,3 @@
+sand_*  : ambientCG "Ground093C" (1K JPG), https://ambientcg.com/view?id=Ground093C, CC0 1.0
+cliff_* : Poly Haven "Cliff Side" (1K JPG), https://polyhaven.com/a/cliff_side, CC0 1.0
+Originals kept in art_source/ (gitignored).

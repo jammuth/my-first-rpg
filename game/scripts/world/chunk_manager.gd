@@ -6,6 +6,7 @@ extends Node3D
 ## is turned into nodes on the main thread, a capped number per frame, to avoid hitches.
 
 const CONTENT := -1
+const TERRAIN_TEXTURES := "res://assets/textures/terrain/"
 
 @export var target_path: NodePath
 @export var content_radius := 2
@@ -51,6 +52,8 @@ func _ready() -> void:
 	_terrain_material.shader = preload("res://shaders/terrain.gdshader")
 	_terrain_material.set_shader_parameter("color_a", biome.ground_color_a)
 	_terrain_material.set_shader_parameter("color_b", biome.ground_color_b)
+	for map in ["sand_color", "sand_normal", "sand_roughness", "cliff_color", "cliff_normal", "cliff_roughness"]:
+		_terrain_material.set_shader_parameter(map, load(TERRAIN_TEXTURES + map + ".jpg"))
 	# Build the immediate surroundings synchronously so the first frame isn't empty.
 	var center := _center_cell()
 	for cell in ChunkMath.cells_in_radius(center, 1):
