@@ -69,3 +69,13 @@ logs/
 *.tmp
 *.temp
 .cache/
+
+# == Art Source ==
+art_source/
+
+# == Godot ==
+# Engine binary is downloaded locally (see CLAUDE.md > Tooling); only the checksum file is tracked.
+tools/godot/*
+!tools/godot/SHA512-SUMS.txt
+.godot/
+*.import.tmp

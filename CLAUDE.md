@@ -9,8 +9,55 @@ This file is read automatically by Claude Code at the start of every session in 
 
 ## Project Overview
 
-<!-- FILL IN PER PROJECT -->
-<!-- 2-4 sentences: what this project is, who it's for, and any context that should change how Claude approaches it (e.g. "payment logic, correctness is non-negotiable" vs "hobby project, move fast"). -->
+A 3D game using the Godot engine using the MCP server. The game will be an rpg that has turn-based combat. 
+
+The protaganist, a scientist/engineer who builds and repairs the unmanned drones controlled to fight and scavenge for parts to build and upgrade drones. 
+
+Drones will be robots that are built from different components (left arm might be a machine gun, the right a grenade launcher, the head could have enhanced scanners that grant the ability to scan for weaknesses increasing hit chance for the next few turns, or the head could have a smoke launcher that could decrease the enemies hit chance, etc.), I am taking inspiration from Medabots heavily.
+
+The protaganist drives around in his mobile workshop, scavenging parts from wrecked cities. A world ending event has left the planet in a ruin where Humans are a dying breed. Small cities exist but are far apart that they all need to be self-suficient. 
+
+There will be a story mode later, however the MVP is a driving around from point of interest to point of interest and fighting battle to upgrade drones.
+
+### Tools
+- use the latest Godot engine
+- use the MCP server
+- as this is a 3d game we will use the forward+ renderer, i plan to release this on Linux/windows and also the SteamDeck
+- use the assets from the art_source
+- if any asset is needed, it needs to be free to download and also have a cc0 lisence. Ask before downloading, give source and then download it to the art_source folder so it can be kept.
+- only copy needed assets to the godot project to keep the project size small.
+
+### Tooling setup
+- **Godot 4.7.2-stable** (latest stable as of 2026-10-11) lives at `tools/godot/Godot_v4.7.2-stable_linux.x86_64`. It runs in self-contained mode (`tools/godot/_sc_`), so editor settings live in `tools/godot/editor_data/`. The binary is gitignored; to re-download, grab `Godot_v4.7.2-stable_linux.x86_64.zip` from https://github.com/godotengine/godot/releases/tag/4.7.2-stable, verify against the tracked `tools/godot/SHA512-SUMS.txt`, unzip into `tools/godot/`, and `touch tools/godot/_sc_`.
+- **Godot MCP server** is configured in `.mcp.json` (`@coding-solo/godot-mcp@0.1.1`, pointed at the binary above). Prefer it for launching/running the project and inspecting scenes; fall back to the CLI binary headless (`--headless --path <project>`) for imports and test runs.
+- **Tests:** no test framework dependency. Use a small custom headless runner (`test_*.gd` files + assert helpers), run via the Godot binary with `--headless`. Cover pure logic (chunk math, deterministic generation, POI/road placement, nearest-POI selection).
+
+---
+
+## Current Task — World Generation & Driving (overworld MVP)
+
+Decisions already made with me — don't re-ask these. Battle mechanics are explicitly **out of scope** until driving and the world feel right.
+
+**World**
+- Vast, effectively infinite, procedurally generated world. Deterministic from a world seed (same seed → same world).
+- **Chunk system**, performance first: stream chunks in/out around the player, generate off the main thread or spread across frames where it helps, keep draw calls low (e.g. MultiMesh for repeated props). Must run well on the Steam Deck.
+- **Desert** biome for now; structure the code so more biomes can be added later.
+- **Roads** connect the POIs, but the truck can drive **anywhere** off-road too.
+
+**POIs**
+- Buildings that can be interacted with. Overworld style, so buildings **don't need to be to scale** (use the Kenney city kits in `art_source/`).
+- Interaction: drive near → **"Press E to enter <name>"** prompt → simple **placeholder panel** showing POI name/type with a Leave button. Mark the POI as visited. This panel is the hook point for battles/scavenging later.
+
+**Player vehicle & controls**
+- Vehicle: the **green box truck** from the Kenney Car Kit (`art_source/kenney_car-kit/`) — verify which model is green from the previews/textures before using it.
+- **No real driving physics** — it moves like a walking character: forward, back, turn left/right (tank controls). Should still collide with buildings.
+- Controller support matters (Steam Deck), not just keyboard.
+
+**Camera**
+- **High angled follow camera**: sits behind and well above the truck (~45–55° down) and rotates with the truck's heading.
+
+**UI**
+- **Compass bar at the top of the screen** with indicators for the **3 closest POIs**.
 
 ---
 
