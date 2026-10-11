@@ -238,7 +238,7 @@ func _build_content(data: ChunkData) -> void:
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		# Props are small next to the fogged-out view distance; skipping far ones saves triangles.
-		mmi.visibility_range_end = PROP_VIEW_DISTANCE
+		mmi.visibility_range_end = def.get("view_distance", PROP_VIEW_DISTANCE)
 		mmi.visibility_range_end_margin = 20.0
 		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		chunk.add_child(mmi)
