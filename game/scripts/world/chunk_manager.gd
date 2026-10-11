@@ -7,6 +7,7 @@ extends Node3D
 
 const CONTENT := -1
 const TERRAIN_TEXTURES := "res://assets/textures/terrain/"
+const ROAD_TEXTURES := "res://assets/textures/road/"
 const PROP_VIEW_DISTANCE := 250.0
 
 @export var target_path: NodePath
@@ -43,23 +44,32 @@ func _ready() -> void:
 	world_seed = GameState.world_seed
 	terrain = TerrainSampler.new(world_seed)
 	_target = get_node(target_path)
-	_road_material = ShaderMaterial.new()
-	_road_material.shader = preload("res://shaders/road.gdshader")
 	_plaza_material = StandardMaterial3D.new()
 	_plaza_material.albedo_color = Color(0.56, 0.5, 0.44)
 	_plaza_material.roughness = 0.95
 	var biome := BiomeMap.biome_at_cell(world_seed, Vector2i.ZERO)
-	_terrain_material = ShaderMaterial.new()
-	_terrain_material.shader = preload("res://shaders/terrain.gdshader")
-	_terrain_material.set_shader_parameter("color_a", biome.ground_color_a)
-	_terrain_material.set_shader_parameter("color_b", biome.ground_color_b)
-	for map in ["sand_color", "sand_normal", "sand_roughness", "cliff_color", "cliff_normal", "cliff_roughness"]:
+	_terrain_material = _ground_material(preload("res://shaders/terrain.gdshader"), biome)
+	for map in ["cliff_color", "cliff_normal", "cliff_roughness"]:
 		_terrain_material.set_shader_parameter(map, load(TERRAIN_TEXTURES + map + ".jpg"))
+	_road_material = _ground_material(preload("res://shaders/road.gdshader"), biome)
+	for map in ["asphalt_color", "asphalt_normal", "asphalt_roughness"]:
+		_road_material.set_shader_parameter(map, load(ROAD_TEXTURES + map + ".jpg"))
 	# Build the immediate surroundings synchronously so the first frame isn't empty.
 	var center := _center_cell()
 	for cell in ChunkMath.cells_in_radius(center, 1):
 		_build_terrain(TerrainMesher.build(terrain, cell, 0))
 		_build_content(ChunkGenerator.generate(world_seed, cell, terrain))
+
+
+## Terrain and road share the desert sand surface, so both get the same sand inputs.
+func _ground_material(shader: Shader, biome: Biome) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("color_a", biome.ground_color_a)
+	mat.set_shader_parameter("color_b", biome.ground_color_b)
+	for map in ["sand_color", "sand_normal", "sand_roughness"]:
+		mat.set_shader_parameter(map, load(TERRAIN_TEXTURES + map + ".jpg"))
+	return mat
 
 
 func _exit_tree() -> void:

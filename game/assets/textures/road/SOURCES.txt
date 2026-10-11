@@ -1,0 +1,2 @@
+asphalt_*: Poly Haven "asphalt_04" (1K JPG), https://polyhaven.com/a/asphalt_04, CC0 1.0
+Originals kept in art_source/ (gitignored).
