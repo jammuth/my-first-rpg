@@ -3,11 +3,14 @@ render_mode cull_disabled;
 
 uniform vec4 color_a : source_color = vec4(0.85, 0.71, 0.49, 1.0);
 uniform vec4 color_b : source_color = vec4(0.77, 0.60, 0.40, 1.0);
+uniform vec3 rock_a : source_color = vec3(0.72, 0.42, 0.25);
+uniform vec3 rock_b : source_color = vec3(0.55, 0.30, 0.18);
 
 global uniform vec2 wind_direction;
 global uniform float wind_strength;
 
 varying vec3 world_pos;
+varying vec3 world_normal;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -23,6 +26,7 @@ float noise(vec2 p) {
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 
 void fragment() {
@@ -37,6 +41,11 @@ void fragment() {
 	float streak = noise(vec2(wind_space.x * 0.03 - t * 0.9, wind_space.y * 0.45));
 	float gust = noise(vec2(wind_space.x * 0.004 - t * 0.12, wind_space.y * 0.01));
 	float drift = smoothstep(0.62, 0.9, streak) * smoothstep(0.35, 0.75, gust) * wind_strength;
-	ALBEDO = albedo + vec3(0.10, 0.085, 0.06) * drift;
+	vec3 sand = albedo + vec3(0.10, 0.085, 0.06) * drift;
+	// Horizontal strata wobbling slightly with position, like sedimentary cliff faces.
+	float strata = sin(world_pos.y * 1.3 + noise(p * 0.05) * 3.0) * 0.5 + 0.5;
+	vec3 rock = mix(rock_a, rock_b, strata * 0.7 + noise(p * 0.3) * 0.3);
+	float steep = 1.0 - smoothstep(0.55, 0.8, world_normal.y);
+	ALBEDO = mix(sand, rock, steep);
 	ROUGHNESS = 0.95;
 }

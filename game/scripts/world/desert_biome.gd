@@ -12,6 +12,8 @@ func _init() -> void:
 	terrain_swell = Vector2(14.0, 1400.0)
 	terrain_dunes = Vector2(8.0, 380.0)
 	terrain_ridges = Vector2(3.0, 150.0)
+	mesa_threshold = 0.38
+	mesa_heights = Vector2(22.0, 14.0)
 	poi_types = [
 		{"id": "scrapyard", "label": "Scrapyard", "weight": 3.0, "scale": 9.0, "plaza_radius": 22.0,
 			"models": [MODELS + "industrial/building-a.glb", MODELS + "industrial/building-o.glb"]},

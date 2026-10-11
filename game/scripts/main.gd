@@ -81,6 +81,6 @@ func _make_environment() -> Environment:
 	env.fog_depth_end = FOG_END
 	# Keeps the upper sky visible when the camera orbits low instead of fogging it out completely.
 	env.fog_sky_affect = 0.3
-	env.fog_height = 4.0
-	env.fog_height_density = 0.04
+	env.fog_height = -12.0
+	env.fog_height_density = 0.02
 	return env

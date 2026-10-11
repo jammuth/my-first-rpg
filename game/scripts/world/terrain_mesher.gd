@@ -6,7 +6,7 @@ extends RefCounted
 ## Vertex spacing per LOD level, indexed by ring distance via lod_for_ring.
 const LOD_STEPS: Array[float] = [2.0, 4.0, 8.0]
 ## Deep enough to cover the worst height mismatch between neighbouring LODs.
-const SKIRT_DEPTH := 6.0
+const SKIRT_DEPTH := 30.0
 
 
 static func lod_for_ring(ring: int) -> int:

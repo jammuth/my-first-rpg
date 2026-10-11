@@ -11,6 +11,10 @@ extends CharacterBody3D
 @export var track_width := 2.8
 ## Higher = body settles onto slopes faster.
 @export var tilt_sharpness := 10.0
+## Steepest climb the truck will attempt (rise over run); anything steeper is treated as a cliff.
+@export var max_climb_grade := 0.9
+## How far past the bumper the slope is checked.
+@export var slope_probe := 1.5
 
 var controls_enabled := true
 var speed := 0.0
@@ -28,12 +32,25 @@ func _physics_process(delta: float) -> void:
 	speed = TruckMotion.step_speed(speed, throttle, delta, max_speed, reverse_speed, acceleration, braking)
 	rotate_y(steer * turn_speed * delta)
 	var forward := -global_basis.z
+	if terrain != null and _cliff_ahead(forward):
+		speed = 0.0
 	velocity = forward * speed
 	move_and_slide()
 	# Bleed speed into walls instead of grinding against them at full throttle.
 	speed = velocity.dot(forward)
 	if terrain != null:
 		snap_to_terrain(delta)
+
+
+func _cliff_ahead(forward: Vector3) -> bool:
+	if is_zero_approx(speed):
+		return false
+	var dir := forward * signf(speed)
+	var reach := wheelbase * 0.5 + slope_probe
+	var p := global_position
+	var here := terrain.height_at(p.x, p.z)
+	var ahead := terrain.height_at(p.x + dir.x * reach, p.z + dir.z * reach)
+	return TruckMotion.blocked_by_slope(here, ahead, reach, max_climb_grade)
 
 
 func snap_to_terrain(delta: float = 0.0) -> void:

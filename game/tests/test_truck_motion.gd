@@ -47,3 +47,9 @@ func test_tilt_signs() -> void:
 	assert_true(nose.y > 0.0)
 	var right_side := Basis.from_euler(Vector3(0, 0, right_high.y)) * Vector3.RIGHT
 	assert_true(right_side.y > 0.0)
+
+
+func test_blocked_by_slope() -> void:
+	assert_false(TruckMotion.blocked_by_slope(0.0, 1.0, 4.0, 0.9), "gentle climb allowed")
+	assert_true(TruckMotion.blocked_by_slope(0.0, 10.0, 4.0, 0.9), "cliff blocks")
+	assert_false(TruckMotion.blocked_by_slope(10.0, 0.0, 4.0, 0.9), "driving downhill never blocks")

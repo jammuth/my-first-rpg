@@ -91,3 +91,12 @@ func test_road_ribbon_hugs_terrain() -> void:
 			assert_near(v.y - sampler.height_at(v.x, v.z), ChunkGenerator.ROAD_HEIGHT, 0.001)
 			checked += 1
 	assert_true(checked > 0)
+
+
+func test_no_props_on_cliff_faces() -> void:
+	var sampler := TerrainSampler.new(SEED)
+	for x in range(-6, 6):
+		var data := ChunkGenerator.generate(SEED, Vector2i(x, -3), sampler)
+		for k in data.props:
+			for t: Transform3D in data.props[k]:
+				assert_true(sampler.normal_at(t.origin.x, t.origin.z, 1.5).y >= ChunkGenerator.PROP_MIN_NORMAL_Y)

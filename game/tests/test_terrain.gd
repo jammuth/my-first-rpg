@@ -161,3 +161,60 @@ func test_skirt_covers_lod_height_error() -> void:
 				var q := p0.lerp(p1, j / 4.0)
 				worst = maxf(worst, absf(q.y - s.height_at(q.x, q.z)))
 	assert_true(worst < TerrainMesher.SKIRT_DEPTH, "LOD error %.2f exceeds skirt" % worst)
+
+
+func test_mesas_exist_with_reasonable_coverage() -> void:
+	var s := TerrainSampler.new(SEED)
+	var on_mesa := 0
+	var total := 0
+	for i in 60:
+		for j in 60:
+			var x := i * 50.0 - 1500.0
+			var z := j * 50.0 - 1500.0
+			var cell := Vector2i(floori(x / ChunkGenerator.CHUNK_SIZE), floori(z / ChunkGenerator.CHUNK_SIZE))
+			if s.mesa_height(Vector2(x, z), s.influences_for_cell(cell)) > 1.0:
+				on_mesa += 1
+			total += 1
+	var frac := float(on_mesa) / total
+	assert_true(frac > 0.02 and frac < 0.3, "mesa coverage %.3f" % frac)
+
+
+func test_cliffs_are_steep() -> void:
+	var s := TerrainSampler.new(SEED)
+	var steepest := 0.0
+	for i in 400:
+		for j in 40:
+			var x := i * 6.0 - 1200.0
+			var z := j * 60.0 - 1200.0
+			steepest = maxf(steepest, absf(s.height_at(x + 2.0, z) - s.height_at(x, z)) / 2.0)
+	assert_true(steepest > 1.2, "no cliff found; steepest grade %.2f" % steepest)
+
+
+func test_no_mesas_near_roads_or_plazas_or_spawn() -> void:
+	var s := TerrainSampler.new(SEED)
+	assert_eq(s.mesa_height(Vector2.ZERO, s.influences_for_cell(Vector2i.ZERO)), 0.0, "spawn")
+	var checked := 0
+	for cell in ChunkMath.cells_in_radius(Vector2i(2, 2), 4):
+		var inf := s.influences_for_cell(cell)
+		var rect := ChunkMath.cell_rect(cell, ChunkGenerator.CHUNK_SIZE)
+		for road in inf.roads:
+			for t in 11:
+				var p: Vector2 = road.a.lerp(road.b, t / 10.0)
+				var d: Vector2 = (road.b - road.a).normalized().orthogonal()
+				for off in [-35.0, 0.0, 35.0]:
+					var q: Vector2 = p + d * off
+					if rect.has_point(q):
+						assert_eq(s.mesa_height(q, inf), 0.0, "mesa within road corridor")
+						checked += 1
+		for e in inf.pois:
+			var poi: PoiData = e.poi
+			if rect.has_point(poi.position_2d()):
+				assert_eq(s.mesa_height(poi.position_2d(), inf), 0.0, "mesa at POI")
+	assert_true(checked > 20)
+
+
+func test_spawn_is_drivable() -> void:
+	var s := TerrainSampler.new(SEED)
+	for k in 16:
+		var p := Vector2.from_angle(k * TAU / 16.0) * 20.0
+		assert_false(TruckMotion.blocked_by_slope(s.height_at(0, 0), s.height_at(p.x, p.y), 20.0, 0.9))

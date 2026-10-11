@@ -9,15 +9,24 @@ const SALT := 0x7E44A
 const ROAD_FLAT_EXTRA := 3.0
 const ROAD_BLEND := 28.0
 const POI_BLEND := 30.0
-## Must exceed every influence's reach (largest plaza + POI_BLEND, road half width + flat + blend)
+## Mesas are pushed out of these zones (fully gone inside the first distance, back to natural by
+## the second) so roads, plazas and the spawn point never end up against or on top of a cliff.
+const MESA_ROAD_CLEAR := Vector2(40.0, 100.0)
+const MESA_POI_CLEAR := Vector2(30.0, 90.0)
+const MESA_SPAWN_CLEAR := Vector2(60.0, 120.0)
+## Lowering the mask (rather than scaling height) moves cliffs away while keeping them steep.
+const MESA_SUPPRESSION := 0.8
+## Must exceed every influence's reach (largest plaza + MESA_POI_CLEAR.y, MESA_ROAD_CLEAR.y, ...)
 ## so samples on either side of a chunk seam see the same roads and POIs.
-const INFLUENCE_MARGIN := 64.0
+const INFLUENCE_MARGIN := 128.0
 const MAX_CACHED_CELLS := 256
 
 var world_seed: int
 var _swell := FastNoiseLite.new()
 var _dunes := FastNoiseLite.new()
 var _ridges := FastNoiseLite.new()
+var _mesa := FastNoiseLite.new()
+var _mesa_detail := FastNoiseLite.new()
 var _biome: Biome
 var _influences := {}
 
@@ -29,6 +38,8 @@ func _init(seed_value: int) -> void:
 	_setup(_swell, base, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, FastNoiseLite.FRACTAL_FBM, 2, _biome.terrain_swell.y)
 	_setup(_dunes, base + 1, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, FastNoiseLite.FRACTAL_FBM, 3, _biome.terrain_dunes.y)
 	_setup(_ridges, base + 2, FastNoiseLite.TYPE_SIMPLEX, FastNoiseLite.FRACTAL_RIDGED, 2, _biome.terrain_ridges.y)
+	_setup(_mesa, base + 3, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, FastNoiseLite.FRACTAL_NONE, 1, _biome.mesa_wavelength)
+	_setup(_mesa_detail, base + 4, FastNoiseLite.TYPE_SIMPLEX, FastNoiseLite.FRACTAL_FBM, 2, 35.0)
 
 
 static func _setup(n: FastNoiseLite, seed_value: int, type: int, fractal: int, octaves: int,
@@ -49,7 +60,34 @@ func base_height(x: float, z: float) -> float:
 
 func height_at(x: float, z: float) -> float:
 	var cell := Vector2i(floori(x / ChunkGenerator.CHUNK_SIZE), floori(z / ChunkGenerator.CHUNK_SIZE))
-	return apply_influences(base_height(x, z), Vector2(x, z), influences_for_cell(cell))
+	var inf := influences_for_cell(cell)
+	var p := Vector2(x, z)
+	return apply_influences(base_height(x, z) + mesa_height(p, inf), p, inf)
+
+
+## Extra height from mesas at `p` (0 off-mesa).
+func mesa_height(p: Vector2, inf: Dictionary) -> float:
+	var b := _biome
+	var m := _mesa.get_noise_2d(p.x, p.y) + _mesa_detail.get_noise_2d(p.x, p.y) * b.mesa_jaggedness
+	if m <= b.mesa_threshold:
+		return 0.0
+	m -= MESA_SUPPRESSION * (1.0 - mesa_clearance(p, inf))
+	var t1 := clampf((m - b.mesa_threshold) / b.mesa_edge_band, 0.0, 1.0)
+	var t2 := clampf((m - b.mesa_threshold - b.mesa_tier_gap) / b.mesa_edge_band, 0.0, 1.0)
+	return smoothstep(0.0, 1.0, t1) * b.mesa_heights.x + smoothstep(0.0, 1.0, t2) * b.mesa_heights.y
+
+
+## 0 where mesas are forbidden (near roads, plazas, spawn), rising to 1 where they're unrestricted.
+static func mesa_clearance(p: Vector2, inf: Dictionary) -> float:
+	var c := smoothstep(MESA_SPAWN_CLEAR.x, MESA_SPAWN_CLEAR.y, p.length())
+	for e in inf.pois:
+		var poi: PoiData = e.poi
+		var d := p.distance_to(poi.position_2d()) - poi.plaza_radius
+		c = minf(c, smoothstep(MESA_POI_CLEAR.x, MESA_POI_CLEAR.y, d))
+	for road in inf.roads:
+		var d := Geometry2DUtil.distance_to_segment(p, road.a, road.b)
+		c = minf(c, smoothstep(MESA_ROAD_CLEAR.x, MESA_ROAD_CLEAR.y, d))
+	return c
 
 
 func normal_at(x: float, z: float, e: float = 1.0) -> Vector3:
