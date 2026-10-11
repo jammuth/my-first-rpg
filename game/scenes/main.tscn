@@ -21,8 +21,8 @@ script = ExtResource("1_main")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.321394, 0.383022, 0, 0.766044, 0.642788, -0.5, -0.556670, 0.663414, 0, 50, 0)
-light_color = Color(1, 0.95, 0.85, 1)
-light_energy = 1.2
+light_color = Color(1, 0.91, 0.76, 1)
+light_energy = 1.35
 shadow_enabled = true
 directional_shadow_mode = 1
 directional_shadow_max_distance = 140.0
