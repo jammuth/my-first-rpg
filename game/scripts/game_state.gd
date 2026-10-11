@@ -20,8 +20,12 @@ var _autosave_timer := AUTOSAVE_INTERVAL
 
 
 func _ready() -> void:
-	if OS.get_cmdline_user_args().has("--new-game"):
-		saving_enabled = not OS.get_cmdline_user_args().has("--benchmark")
+	var args := OS.get_cmdline_user_args()
+	if args.has("--benchmark"):
+		# Always the same route from spawn, and never overwrite the player's save.
+		saving_enabled = false
+		return
+	if args.has("--new-game"):
 		return
 	load_game()
 

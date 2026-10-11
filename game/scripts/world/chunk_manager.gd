@@ -39,7 +39,14 @@ var _road_material: ShaderMaterial
 var _terrain_material: ShaderMaterial
 
 
+func _apply_graphics() -> void:
+	terrain_radius = GraphicsSettings.get_value("terrain_radius")
+	terrain_unload_radius = terrain_radius + 1
+
+
 func _ready() -> void:
+	_apply_graphics()
+	GraphicsSettings.changed.connect(_apply_graphics)
 	# Chunk content is built in world coordinates; this node carries the floating-origin offset.
 	position = -GameState.origin
 	world_seed = GameState.world_seed
@@ -223,6 +230,11 @@ func _build_content(data: ChunkData) -> void:
 		var def := _prop_def(biome, prop_id)
 		var entry := _props.get_entry(def.path)
 		var transforms: Array = data.props[prop_id]
+		if not def.solid:
+			var density: float = GraphicsSettings.get_value("prop_density")
+			transforms = transforms.filter(func(t: Transform3D) -> bool: return GraphicsSettings.keep_prop(t.origin, density))
+			if transforms.is_empty():
+				continue
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.mesh = entry.mesh
@@ -232,7 +244,9 @@ func _build_content(data: ChunkData) -> void:
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		# Props are small next to the fogged-out view distance; skipping far ones saves triangles.
-		mmi.visibility_range_end = def.get("view_distance", PROP_VIEW_DISTANCE)
+		mmi.visibility_range_end = def.get("view_distance", PROP_VIEW_DISTANCE) * GraphicsSettings.get_value("prop_view_scale")
+		if not def.solid and not GraphicsSettings.get_value("small_prop_shadows"):
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mmi.visibility_range_end_margin = 20.0
 		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		chunk.add_child(mmi)

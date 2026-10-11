@@ -20,7 +20,7 @@ func _ready() -> void:
 	var strength := wind.length()
 	wind = wind.normalized()
 
-	amount = puff_count
+	amount = maxi(1, int(puff_count * GraphicsSettings.get_value("particles")))
 	lifetime = 5.0
 	preprocess = 5.0
 	local_coords = false

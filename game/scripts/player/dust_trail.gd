@@ -20,7 +20,7 @@ var _surface_timer := 0.0
 func _ready() -> void:
 	add_to_group("origin_shift_listeners")
 	_truck = get_parent() as Truck
-	amount = max_puffs
+	amount = maxi(1, int(max_puffs * GraphicsSettings.get_value("particles")))
 	lifetime = 2.6
 	local_coords = false
 	emitting = false

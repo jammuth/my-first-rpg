@@ -1,8 +1,6 @@
 extends Node3D
 
 const POI_REFRESH_INTERVAL := 0.2
-const FOG_BEGIN := 200.0
-const FOG_END := 500.0
 
 @onready var _truck: Truck = $Truck
 @onready var _camera: Camera3D = $FollowCamera
@@ -29,6 +27,17 @@ func _ready() -> void:
 	_truck.snap_to_terrain()
 	_truck.reset_physics_interpolation()
 	$WorldEnvironment.environment = _make_environment()
+	_apply_graphics()
+	GraphicsSettings.changed.connect(_apply_graphics)
+	var overlay := DebugOverlay.new()
+	overlay.chunks = _chunks
+	overlay.world_position = truck_world_position
+	add_child(overlay)
+	if OS.get_cmdline_user_args().has("--benchmark"):
+		var bench := Benchmark.new()
+		bench.truck = _truck
+		bench.overlay = overlay
+		add_child(bench)
 	_hud.poi_panel_closed.connect(func() -> void: _truck.controls_enabled = true)
 	_refresh_pois()
 
@@ -92,6 +101,20 @@ func _refresh_pois() -> void:
 	_hud.set_prompt_poi(_interactable)
 
 
+func _apply_graphics() -> void:
+	var view: float = GraphicsSettings.get_value("view_distance")
+	var env: Environment = $WorldEnvironment.environment
+	env.fog_depth_end = view
+	env.fog_depth_begin = view * 0.4
+	_camera.far = view + 300.0
+	var sun: DirectionalLight3D = $Sun
+	sun.directional_shadow_max_distance = GraphicsSettings.get_value("shadow_distance")
+	RenderingServer.directional_shadow_atlas_set_size(GraphicsSettings.get_value("shadow_atlas"), true)
+	var scale: float = GraphicsSettings.get_value("render_scale")
+	get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if scale < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
+	get_viewport().scaling_3d_scale = scale
+
+
 func _make_environment() -> Environment:
 	var haze := Color(0.93, 0.80, 0.52)
 	var sky_mat := ProceduralSkyMaterial.new()
@@ -120,8 +143,7 @@ func _make_environment() -> Environment:
 	env.fog_sun_scatter = 0.35
 	env.fog_density = 1.0
 	env.fog_depth_curve = 1.6
-	env.fog_depth_begin = FOG_BEGIN
-	env.fog_depth_end = FOG_END
+	# Depth fog distances come from the graphics preset (_apply_graphics).
 	# Keeps the upper sky visible when the camera orbits low instead of fogging it out completely.
 	env.fog_sky_affect = 0.3
 	env.fog_height = -12.0
