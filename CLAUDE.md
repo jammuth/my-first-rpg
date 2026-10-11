@@ -32,6 +32,7 @@ There will be a story mode later, however the MVP is a driving around from point
 - **Godot MCP server** is configured in `.mcp.json` (`@coding-solo/godot-mcp@0.1.1`, pointed at the binary above). Prefer it for launching/running the project and inspecting scenes; fall back to the CLI binary headless (`--headless --path <project>`) for imports and test runs.
 - **Tests:** no test framework dependency. Use a small custom headless runner (`test_*.gd` files + assert helpers), run via the Godot binary with `--headless`. Cover pure logic (chunk math, deterministic generation, POI/road placement, nearest-POI selection).
   Run with `tools/run_tests.sh [filter]` (runner: `game/tests/run_tests.gd`, tests extend `TestCase` in `game/tests/`). The Godot project lives in `game/`.
+- **Exports:** `tools/export.sh` builds Linux x86_64 (also the Steam Deck) and Windows x86_64 into `builds/` (gitignored), using `game/export_presets.cfg`. Needs the 4.7.2 export templates in `tools/godot/editor_data/export_templates/4.7.2.stable/` (gitignored): download `Godot_v4.7.2-stable_export_templates.tpz` from the same release page, verify it against `tools/godot/SHA512-SUMS.txt`, and extract the Linux/Windows x86_64 templates plus `version.txt` there. Steam Deck notes and the `--benchmark` mode are in `docs/steam-deck.md`.
 
 ---
 
@@ -55,7 +56,7 @@ Decisions already made with me — don't re-ask these. Battle mechanics are expl
 - Controller support matters (Steam Deck), not just keyboard.
 
 **Camera**
-- **High angled follow camera**: sits behind and well above the truck (~45–55° down) and rotates with the truck's heading.
+- **Low follow camera** (changed 2026-10-11 from the original 45–55°): sits behind the truck at the lowest orbit pitch (12° down) so the player can see where they are going, and rotates with the truck's heading. Right mouse / right stick orbits; it eases back on release.
 
 **UI**
 - **Compass bar at the top of the screen** with indicators for the **3 closest POIs**.

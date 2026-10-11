@@ -79,3 +79,6 @@ tools/godot/*
 !tools/godot/SHA512-SUMS.txt
 .godot/
 *.import.tmp
+
+# == Exported game builds ==
+builds/

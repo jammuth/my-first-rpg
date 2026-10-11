@@ -5,7 +5,7 @@ extends GPUParticles3D
 
 @export var max_puffs := 140
 @export var puff_size := 2.2
-@export var color := Color(0.88, 0.75, 0.52, 0.45)
+@export var color := Color(0.88, 0.75, 0.52, 0.32)
 ## Below this speed (m/s) nothing is kicked up.
 @export var min_speed := 1.5
 @export var paved_factor := 0.2
@@ -65,10 +65,10 @@ func _process(delta: float) -> void:
 
 
 ## Fraction of max_puffs to emit at `speed`: 0 below min_speed, rising to 1 at top speed.
-static func emission_ratio(speed: float, top_speed: float, min_speed: float) -> float:
-	if speed < min_speed:
+static func emission_ratio(speed: float, top_speed: float, start_speed: float) -> float:
+	if speed < start_speed:
 		return 0.0
-	return clampf((speed - min_speed) / maxf(top_speed - min_speed, 0.001), 0.0, 1.0) * 0.85 + 0.15
+	return clampf((speed - start_speed) / maxf(top_speed - start_speed, 0.001), 0.0, 1.0) * 0.85 + 0.15
 
 
 func _on_pavement() -> bool:

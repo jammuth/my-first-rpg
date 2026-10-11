@@ -53,9 +53,9 @@ func get_value(key: String) -> Variant:
 	return PRESETS[preset_name][key]
 
 
-func set_preset(name: String) -> void:
-	if PRESETS.has(name) and name != preset_name:
-		preset_name = name
+func set_preset(preset: String) -> void:
+	if PRESETS.has(preset) and preset != preset_name:
+		preset_name = preset
 		changed.emit()
 
 

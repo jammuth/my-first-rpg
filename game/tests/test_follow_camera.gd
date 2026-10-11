@@ -45,3 +45,20 @@ func test_orbit_return_never_overshoots() -> void:
 		assert_true(absf(next.x) <= absf(o.x) and signf(next.x) != -signf(o.x), "yaw overshot")
 		assert_true(absf(next.y) <= absf(o.y) and signf(next.y) != -signf(o.y), "pitch overshot")
 		o = next
+
+
+func test_sight_lift_zero_over_flat_ground() -> void:
+	var ts: Array[float] = [0.25, 0.5, 1.0]
+	var lift := FollowCamera.sight_lift(Vector3(0, 3, 0), Vector3(0, 8, 25), ts, PackedFloat32Array([0, 0, 0]), 1.5)
+	assert_eq(lift, 0.0)
+
+
+func test_sight_lift_clears_a_crest() -> void:
+	var ts: Array[float] = [0.25, 0.5, 1.0]
+	var focus := Vector3(0, 3, 0)
+	var cam := Vector3(0, 8, 25)
+	# Crest halfway: line is at 5.5 there; ground at 7 needs 7 + 1.5 - 5.5 = 3 more at t=0.5 -> lift 6.
+	var lift := FollowCamera.sight_lift(focus, cam, ts, PackedFloat32Array([0, 7, 0]), 1.5)
+	assert_near(lift, 6.0)
+	var raised := cam + Vector3.UP * lift
+	assert_near(lerpf(focus.y, raised.y, 0.5) - 7.0, 1.5, 0.0001, "crest now exactly margin below sight")

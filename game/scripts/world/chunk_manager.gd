@@ -9,6 +9,7 @@ const CONTENT := -1
 const TERRAIN_TEXTURES := "res://assets/textures/terrain/"
 const ROAD_TEXTURES := "res://assets/textures/road/"
 const PROP_VIEW_DISTANCE := 250.0
+const GraphicsSettingsScript := preload("res://scripts/graphics_settings.gd")
 
 @export var target_path: NodePath
 @export var content_radius := 2
@@ -232,7 +233,7 @@ func _build_content(data: ChunkData) -> void:
 		var transforms: Array = data.props[prop_id]
 		if not def.solid:
 			var density: float = GraphicsSettings.get_value("prop_density")
-			transforms = transforms.filter(func(t: Transform3D) -> bool: return GraphicsSettings.keep_prop(t.origin, density))
+			transforms = transforms.filter(func(t: Transform3D) -> bool: return GraphicsSettingsScript.keep_prop(t.origin, density))
 			if transforms.is_empty():
 				continue
 		var mm := MultiMesh.new()
