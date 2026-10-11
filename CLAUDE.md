@@ -32,6 +32,7 @@ There will be a story mode later, however the MVP is a driving around from point
 - **Godot MCP server** is configured in `.mcp.json` (`@coding-solo/godot-mcp@0.1.1`, pointed at the binary above). Prefer it for launching/running the project and inspecting scenes; fall back to the CLI binary headless (`--headless --path <project>`) for imports and test runs.
 - **Tests:** no test framework dependency. Use a small custom headless runner (`test_*.gd` files + assert helpers), run via the Godot binary with `--headless`. Cover pure logic (chunk math, deterministic generation, POI/road placement, nearest-POI selection).
   Run with `tools/run_tests.sh [filter]` (runner: `game/tests/run_tests.gd`, tests extend `TestCase` in `game/tests/`). The Godot project lives in `game/`.
+- **Exports:** `tools/export.sh` builds Linux x86_64 (also the Steam Deck) and Windows x86_64 into `builds/` (gitignored), using `game/export_presets.cfg`. Needs the 4.7.2 export templates in `tools/godot/editor_data/export_templates/4.7.2.stable/` (gitignored): download `Godot_v4.7.2-stable_export_templates.tpz` from the same release page, verify it against `tools/godot/SHA512-SUMS.txt`, and extract the Linux/Windows x86_64 templates plus `version.txt` there. Steam Deck notes and the `--benchmark` mode are in `docs/steam-deck.md`.
 
 ---
 

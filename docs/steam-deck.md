@@ -35,9 +35,15 @@ The benchmark:
 
 It ignores and never writes the save game.
 
-On a Deck with no exported build yet, use Desktop Mode:
-1. Copy the repo and the Godot 4.7.2 Linux binary across.
-2. Run the command above from Konsole.
+### On the Deck
+1. Build with `tools/export.sh`, which produces `builds/linux/my-first-rpg.x86_64`, a single file with the game data embedded.
+2. Copy that file to the Deck, e.g. over SSH or a USB stick.
+3. In Desktop Mode, mark it executable and run from Konsole:
+   ```bash
+   ./my-first-rpg.x86_64 -- --benchmark --graphics=deck
+   ```
+   Or run it without arguments to play. The preset is auto-detected on the Deck.
+4. To play from Gaming Mode, add the file to Steam as a non-Steam game.
 
 ## Reference results (2026-10-11, 1280x800, same route)
 | GPU | preset | avg ms | p99 ms | missed 60 fps frames |
