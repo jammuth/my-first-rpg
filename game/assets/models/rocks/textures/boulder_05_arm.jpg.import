@@ -3,15 +3,16 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pvxc88mdt5kb"
-path="res://.godot/imported/boulder_05_arm.jpg-7ecd4101f3943303f15d649d5cf03042.ctex"
+path.s3tc="res://.godot/imported/boulder_05_arm.jpg-7ecd4101f3943303f15d649d5cf03042.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/rocks/textures/boulder_05_arm.jpg"
-dest_files=["res://.godot/imported/boulder_05_arm.jpg-7ecd4101f3943303f15d649d5cf03042.ctex"]
+dest_files=["res://.godot/imported/boulder_05_arm.jpg-7ecd4101f3943303f15d649d5cf03042.s3tc.ctex"]
 
 [params]
 

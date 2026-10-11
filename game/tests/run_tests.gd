@@ -19,7 +19,19 @@ class ErrorCounter extends Logger:
 		pass
 
 
-func _initialize() -> void:
+var _started := false
+
+
+# Tests run on the first frame rather than in _initialize so the root is inside the tree and tests
+# can add real nodes (physics bodies, scenes) to it.
+func _process(_delta: float) -> bool:
+	if not _started:
+		_started = true
+		_run_all()
+	return false
+
+
+func _run_all() -> void:
 	var filter := ""
 	var user_args := OS.get_cmdline_user_args()
 	if not user_args.is_empty():

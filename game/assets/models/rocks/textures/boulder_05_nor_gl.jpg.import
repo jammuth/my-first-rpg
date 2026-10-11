@@ -3,15 +3,16 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bndjwh5116e1d"
-path="res://.godot/imported/boulder_05_nor_gl.jpg-0035ff833b9ce97da1642e1395c85ca4.ctex"
+path.s3tc="res://.godot/imported/boulder_05_nor_gl.jpg-0035ff833b9ce97da1642e1395c85ca4.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/rocks/textures/boulder_05_nor_gl.jpg"
-dest_files=["res://.godot/imported/boulder_05_nor_gl.jpg-0035ff833b9ce97da1642e1395c85ca4.ctex"]
+dest_files=["res://.godot/imported/boulder_05_nor_gl.jpg-0035ff833b9ce97da1642e1395c85ca4.s3tc.ctex"]
 
 [params]
 
