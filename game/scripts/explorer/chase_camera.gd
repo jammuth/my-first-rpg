@@ -15,8 +15,13 @@ extends Node3D
 @export var mouse_sensitivity := 0.0035
 ## Radians per second at full right-stick deflection.
 @export var stick_speed := 2.6
+## Minimum camera height above the terrain (which has no collision for the spring arm to hit).
+@export var ground_clearance := 0.4
 
 var shoulder := false
+var terrain: TerrainSampler
+## Floating-origin offset: world = local + origin.
+var origin := Vector3.ZERO
 ## x = yaw, y = pitch (radians).
 var look := Vector2.ZERO
 
@@ -54,6 +59,10 @@ func _ready() -> void:
 	_place()
 
 
+func camera() -> Camera3D:
+	return _camera
+
+
 func set_yaw(yaw: float) -> void:
 	look.x = yaw
 	_place()
@@ -81,5 +90,11 @@ func _turn(delta_radians: Vector2) -> void:
 func _place() -> void:
 	global_position = _target.get_global_transform_interpolated().origin + Vector3.UP * height
 	rotation = Vector3(look.y, look.x, 0.0)
+	if terrain != null and _camera != null:
+		# Lift the whole rig so the camera end stays above dunes; the arm only collides with bodies.
+		var cam := _camera.global_position + origin
+		var floor_y := terrain.height_at(cam.x, cam.z) + ground_clearance
+		if cam.y < floor_y:
+			global_position.y += floor_y - cam.y
 	if _target is Explorer:
 		(_target as Explorer).camera_yaw = look.x
