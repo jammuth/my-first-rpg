@@ -43,7 +43,7 @@ See `docs/roadmap.md`: Overworld ✅ → **POI exploration (current)** → Battl
 
 The full plan and decisions are in `docs/plans/poi-exploration.md`. Don't re-ask anything listed there under "Decided". Real battles and drone-part building are **out of scope**.
 - Each POI gets a fixed level built from its layout, the same for a given seed. The run starts at the parked truck, which is also the extraction point.
-- A masked explorer, chosen on a new main menu: the Survivalist, a head swap (Survivalist body with the Hoarder's head) or the swordless Hoarder, all wearing the Hoarder's mask and scarf recoloured khaki. The explorer moves in third person and never attacks. An exploration drone follows and does the scanning and hacking.
+- A masked explorer, chosen on a new main menu: the Survivalist, a head swap (Survivalist body with the Hoarder's head) or the Hoarder with no sword and no bag, all wearing the Hoarder's mask and scarf recoloured khaki. The explorer moves in third person and never attacks. An exploration drone follows and does the scanning and hacking.
 - No walk-in buildings: locked doors (key or hack) open a loot window. The bag is slot-based with rarities, like Arc Raiders.
 - Loot only counts once it's unloaded at the truck. There it breaks down over time into elements.
 - Random encounters open a placeholder battle screen that automatically loses the 3rd encounter. On defeat you respawn at the truck, the bag is lost, and the POI resets to its state at your last unload.

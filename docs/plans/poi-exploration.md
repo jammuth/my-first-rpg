@@ -11,7 +11,7 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 - **Explorer:** masked, and **chosen on the main menu**. All options wear the Hoarder's face mask and scarf, recoloured khaki (sand protection). Options:
   - **Survivalist:** the Survivalist with the grafted mask and scarf.
   - **Head swap:** the Survivalist body (same outfit) with the Hoarder's head.
-  - **Hoarder:** the full Hoarder with the front-pouch sword removed (`Hoarder_FrontPouch_Sword` hidden).
+  - **Hoarder:** the Hoarder with no sword and no bag (`Hoarder_FrontPouch_Sword` and `Hoarder_Backpack` hidden). The shoulder straps are part of her body mesh, so they stay.
   The choice is saved. All options share one skeleton and animation set, so swapping or adding options later only adds a definition.
 - **Exploration drone:** follows the explorer and does the hacking and scanning. In v1 it has fixed abilities and no stats.
 - **Combat:** the explorer never attacks. Encounters are drone battles, handled by a placeholder screen until milestone 3.
