@@ -1,6 +1,6 @@
 # Plan: Desert visual upgrade (atmosphere, blowing sand, heightmap terrain, cliffs)
 
-Status: **in progress** on `feat/desert-visuals` (2026-10-11).
+Status: **Phases A–E implemented** on `feat/desert-visuals` (2026-10-11). Steam Deck measurement still outstanding.
 
 **Decided:**
 - Tinted PBR textures.
@@ -135,3 +135,10 @@ HDRIs include the photographed ground in their lower half. With our high camera,
 
 ## Suggested order
 A → B (quick visible wins, no risk) → C → D → E. E can be done alongside C/D once decision 1 is made.
+
+## Implementation notes (deviations from the plan above)
+- **Terrain noise** uses Godot's built-in `FastNoiseLite` (not a new dependency), not hash-based noise written in GDScript. That's for speed; it's still deterministic per seed.
+- **Road profile** is a constant grade between the two POI heights, held level across each plaza. There is no grade cap; in practice grades are gentle.
+- **No terrain collision.** The truck samples height directly, and a look-ahead grade check (`max_climb_grade` 0.9) stops it at cliffs.
+- **Mesas are pushed away, not lowered.** Near roads, plazas and spawn the mask is reduced, so cliffs move away from them while staying steep.
+- **Detail levels:** 2 m, 4 m and 8 m vertex spacing across rings 0–1, 2 and 3–4. Skirts are 30 m deep, enough to cover cliff-edge mismatches between detail levels.
