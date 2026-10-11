@@ -15,6 +15,16 @@ var truck_yaw := 0.0
 var saving_enabled := true
 ## Floating origin: world = local + origin (see WorldOrigin). Owned by main.gd.
 var origin := Vector3.ZERO
+## Seconds played (stops while the tree is paused). Timestamps loot and will drive breakdown.
+var play_time := 0.0
+## POI id -> PoiState, banked progress only.
+var poi_states: Dictionary = {}
+## Unloaded scrap waiting at the truck.
+var truck_stash: Array[Dictionary] = []
+## The run in progress, or null in the overworld. Never saved: quitting mid-run behaves like
+## walking away from the POI without unloading.
+var exploration: ExplorationSession = null
+var exploration_poi: PoiData = null
 
 var _autosave_timer := AUTOSAVE_INTERVAL
 
@@ -31,6 +41,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	play_time += delta
 	_autosave_timer -= delta
 	if _autosave_timer <= 0.0:
 		_autosave_timer = AUTOSAVE_INTERVAL
@@ -51,6 +62,36 @@ func is_visited(poi_id: String) -> bool:
 	return visited_pois.has(poi_id)
 
 
+func poi_state(poi_id: String) -> PoiState:
+	if not poi_states.has(poi_id):
+		poi_states[poi_id] = PoiState.new()
+	return poi_states[poi_id]
+
+
+## The truck stays parked where it is, so returning rebuilds the overworld at the same spot.
+func start_exploration(poi: PoiData) -> void:
+	exploration = ExplorationSession.new(poi.id, poi_state(poi.id))
+	exploration_poi = poi
+	start_position = truck_world_position
+	start_yaw = truck_yaw
+	save_game()
+
+
+func unload_at_truck() -> void:
+	if exploration == null:
+		return
+	ItemStacks.merge(truck_stash, exploration.bank())
+	save_game()
+
+
+## Leaving only happens at the truck, so whatever is carried gets unloaded on the way out.
+func end_exploration() -> void:
+	unload_at_truck()
+	exploration = null
+	exploration_poi = null
+	save_game()
+
+
 func save_game() -> void:
 	if not saving_enabled:
 		return
@@ -58,7 +99,11 @@ func save_game() -> void:
 	if file == null:
 		push_warning("could not write save: %s" % error_string(FileAccess.get_open_error()))
 		return
-	file.store_string(SaveGame.to_json(world_seed, visited_pois, truck_world_position, truck_yaw))
+	file.store_string(SaveGame.to_json(world_seed, visited_pois, truck_world_position, truck_yaw, {
+		"play_time": play_time,
+		"poi_states": poi_states,
+		"stash": truck_stash,
+	}))
 
 
 func load_game() -> void:
@@ -74,3 +119,6 @@ func load_game() -> void:
 	start_yaw = data.truck_yaw
 	truck_world_position = data.truck_position
 	truck_yaw = data.truck_yaw
+	play_time = data.play_time
+	poi_states = data.poi_states
+	truck_stash = data.stash
