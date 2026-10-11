@@ -82,3 +82,6 @@ tools/godot/*
 
 # == Exported game builds ==
 builds/
+
+# == Claude Code (per-machine, e.g. GODOT_PATH for the MCP server) ==
+.claude/settings.local.json

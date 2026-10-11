@@ -2,7 +2,7 @@
 # Bakes plant/cactus props from art_source/ into game/assets/models/plants/.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-GODOT="${GODOT:-$ROOT/tools/godot/Godot_v4.7.2-stable_linux.x86_64}"
+source "$ROOT/tools/godot_bin.sh"
 G=("$GODOT" --headless --path "$ROOT/game")
 "${G[@]}" -s res://tools/bake_plants.gd -- textures
 "${G[@]}" --import >/dev/null 2>&1 || true
