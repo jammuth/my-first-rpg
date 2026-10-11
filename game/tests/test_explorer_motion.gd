@@ -46,3 +46,10 @@ func test_animation_for_speed() -> void:
 	assert_eq(ExplorerMotion.animation_for(0.0, 2.6), ExplorerAnimations.IDLE)
 	assert_eq(ExplorerMotion.animation_for(2.6, 2.6), ExplorerAnimations.WALK)
 	assert_eq(ExplorerMotion.animation_for(5.6, 2.6), ExplorerAnimations.RUN)
+
+
+func test_slide_along_drops_only_the_outward_part() -> void:
+	var n := Vector2(1, 0)
+	assert_eq(ExplorerMotion.slide_along(Vector2(3, 0), n), Vector2.ZERO, "head on stops")
+	assert_eq(ExplorerMotion.slide_along(Vector2(2, 1.5), n), Vector2(0, 1.5), "glancing slides")
+	assert_eq(ExplorerMotion.slide_along(Vector2(-2, 1), n), Vector2(-2, 1), "moving away is untouched")

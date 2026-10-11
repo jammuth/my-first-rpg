@@ -31,6 +31,13 @@ static func turn_towards(yaw: float, direction: Vector3, sharpness: float, delta
 	return lerp_angle(yaw, target, 1.0 - exp(-sharpness * delta))
 
 
+## Drops the part of a horizontal velocity pushing out through a wall whose outward normal is
+## `normal`, so the explorer slides along it (or stops, head on) instead of running in place.
+static func slide_along(velocity: Vector2, normal: Vector2) -> Vector2:
+	var into := velocity.dot(normal)
+	return velocity - normal * into if into > 0.0 else velocity
+
+
 static func animation_for(speed: float, walk_speed: float) -> String:
 	if speed < IDLE_SPEED:
 		return ExplorerAnimations.IDLE
