@@ -75,3 +75,15 @@ static func junction_radius(dirs: Array[Vector2], min_radius: float, max_radius:
 			var overlap := INF if t < 0.001 else (WIDTH * 0.5 + 1.5) / t
 			radius = maxf(radius, overlap / JUNCTION_CORE)
 	return minf(radius, max_radius)
+
+
+## True when the world point is on asphalt: a road (any road in `roads`, as {a, b} dicts from
+## TerrainSampler.influences_for_cell) or a POI's junction pad.
+static func is_paved(p: Vector2, roads: Array, pads: Array) -> bool:
+	for road: Dictionary in roads:
+		if Geometry2DUtil.distance_to_segment(p, road.a, road.b) <= WIDTH * 0.5:
+			return true
+	for pad: Dictionary in pads:
+		if p.distance_to(pad.centre) <= pad.radius:
+			return true
+	return false

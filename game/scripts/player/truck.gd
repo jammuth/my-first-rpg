@@ -47,14 +47,14 @@ func _cliff_ahead(forward: Vector3) -> bool:
 		return false
 	var dir := forward * signf(speed)
 	var reach := wheelbase * 0.5 + slope_probe
-	var p := global_position
+	var p := global_position + GameState.origin
 	var here := terrain.height_at(p.x, p.z)
 	var ahead := terrain.height_at(p.x + dir.x * reach, p.z + dir.z * reach)
 	return TruckMotion.blocked_by_slope(here, ahead, reach, max_climb_grade)
 
 
 func snap_to_terrain(delta: float = 0.0) -> void:
-	var p := global_position
+	var p := global_position + GameState.origin
 	position.y = terrain.height_at(p.x, p.z)
 	var fwd := -global_basis.z * (wheelbase * 0.5)
 	var right := global_basis.x * (track_width * 0.5)

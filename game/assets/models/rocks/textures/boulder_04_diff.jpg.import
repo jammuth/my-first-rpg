@@ -3,15 +3,16 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dbi3w21xd5g0w"
-path="res://.godot/imported/boulder_04_diff.jpg-46718c8077f0db1841756df3ab8905ef.ctex"
+path.s3tc="res://.godot/imported/boulder_04_diff.jpg-46718c8077f0db1841756df3ab8905ef.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/rocks/textures/boulder_04_diff.jpg"
-dest_files=["res://.godot/imported/boulder_04_diff.jpg-46718c8077f0db1841756df3ab8905ef.ctex"]
+dest_files=["res://.godot/imported/boulder_04_diff.jpg-46718c8077f0db1841756df3ab8905ef.s3tc.ctex"]
 
 [params]
 

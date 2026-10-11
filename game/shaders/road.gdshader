@@ -19,7 +19,7 @@ uniform float patch_sand : hint_range(0.0, 1.0) = 0.6;
 varying vec3 world_pos;
 
 void vertex() {
-	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz + world_origin;
 }
 
 void fragment() {

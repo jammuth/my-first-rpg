@@ -18,6 +18,9 @@ instance uniform float base_y = 0.0;
 /** World height above which a ruined piece is broken off (huge = intact). */
 instance uniform float ruin_height = 100000.0;
 
+/** Floating origin (see WorldOrigin): adds back what the scene was shifted by. */
+global uniform vec3 world_origin;
+
 varying vec3 world_pos;
 varying vec3 world_normal;
 
@@ -38,7 +41,7 @@ float luma(vec3 c) {
 }
 
 void vertex() {
-	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz + world_origin;
 	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 
