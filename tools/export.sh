@@ -3,7 +3,7 @@
 # Needs the Godot 4.7.2 export templates installed; see CLAUDE.md > Tooling setup.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-GODOT="${GODOT:-$ROOT/tools/godot/Godot_v4.7.2-stable_linux.x86_64}"
+source "$ROOT/tools/godot_bin.sh"
 mkdir -p "$ROOT/builds/linux" "$ROOT/builds/windows"
 "$GODOT" --headless --path "$ROOT/game" --import >/dev/null 2>&1 || true
 "$GODOT" --headless --path "$ROOT/game" --export-release "Linux" "$ROOT/builds/linux/my-first-rpg.x86_64"
