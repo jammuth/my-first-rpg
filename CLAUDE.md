@@ -31,6 +31,7 @@ There will be a story mode later, however the MVP is a driving around from point
 - **Godot 4.7.2-stable** (latest stable as of 2026-10-11) lives at `tools/godot/Godot_v4.7.2-stable_linux.x86_64`. It runs in self-contained mode (`tools/godot/_sc_`), so editor settings live in `tools/godot/editor_data/`. The binary is gitignored; to re-download, grab `Godot_v4.7.2-stable_linux.x86_64.zip` from https://github.com/godotengine/godot/releases/tag/4.7.2-stable, verify against the tracked `tools/godot/SHA512-SUMS.txt`, unzip into `tools/godot/`, and `touch tools/godot/_sc_`.
 - **Godot MCP server** is configured in `.mcp.json` (`@coding-solo/godot-mcp@0.1.1`, pointed at the binary above). Prefer it for launching/running the project and inspecting scenes; fall back to the CLI binary headless (`--headless --path <project>`) for imports and test runs.
 - **Tests:** no test framework dependency. Use a small custom headless runner (`test_*.gd` files + assert helpers), run via the Godot binary with `--headless`. Cover pure logic (chunk math, deterministic generation, POI/road placement, nearest-POI selection).
+  Run with `tools/run_tests.sh [filter]` (runner: `game/tests/run_tests.gd`, tests extend `TestCase` in `game/tests/`). The Godot project lives in `game/`.
 
 ---
 
