@@ -8,7 +8,7 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 ## Decided
 - **Level:** each POI has a fixed level built from its existing `PoiData.layout`, so it matches what you saw while driving. The same seed always gives the same level.
 - **Start and extraction:** the run starts at the parked truck, and the truck is also the extraction point.
-- **Explorer:** masked. The KayKit Survivalist wearing the Hoarder's face mask is preferred (see step 2), with the Hoarder as fallback. Female is fine. The model must be swappable.
+- **Explorer:** masked. The KayKit Survivalist wearing the Hoarder's face mask and scarf is preferred (see step 2), with the Hoarder as fallback. Female is fine. The model must be swappable.
 - **Exploration drone:** follows the explorer and does the hacking and scanning. In v1 it has fixed abilities and no stats.
 - **Combat:** the explorer never attacks. Encounters are drone battles, handled by a placeholder screen until milestone 3.
 - **Buildings are not walk-in.** A locked door opens a **loot window** listing the container's contents, extraction-shooter style.
@@ -60,7 +60,7 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 - Animations: idle, walk, run and interact from the shared Rig_Medium packs.
 - Movement relative to the camera, with no physics beyond `CharacterBody3D`. Keyboard, mouse and gamepad all work.
 - Chase camera with a SpringArm, plus the shoulder-offset setting.
-- **Survivalist + Hoarder mask (requested experiment):** move `Hoarder_FaceMask` onto the Survivalist's skeleton. Both use the same Rig_Medium bone names, so the skin can be remapped by name. **Tested on 2026-10-11 (T-pose only):** the swap works with no Blender. Each skin bind is remapped by bone name, and the mask is scaled 1.15× and moved 0.04 m forward in head-bone space, done in the skin's bind poses. That fully covers the beard and the larger nose. Still to check in-game: clipping in the run and idle animations. The fallback is the Hoarder.
+- **Survivalist + Hoarder mask (requested experiment):** move `Hoarder_FaceMask` and the `Hoarder_CollarArmor` scarf (protection from sand) onto the Survivalist's skeleton. Both use the same Rig_Medium bone names, so the skin can be remapped by name. **Tested on 2026-10-11 (T-pose only):** the swap works with no Blender. Each skin bind is remapped by bone name, and the mask is scaled 1.15× and moved 0.04 m forward in head-bone space, done in the skin's bind poses. That fully covers the beard and the larger nose. The scarf fits unchanged, and looks clean from behind, which is the angle the chase camera uses. Still to check in-game: clipping in the run and idle animations. The fallback is the Hoarder.
 - **Tests:** movement direction relative to camera yaw, input mapping.
 
 ### 3. Building the level from a POI
