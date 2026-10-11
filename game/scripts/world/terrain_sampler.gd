@@ -18,7 +18,7 @@ const MESA_SPAWN_CLEAR := Vector2(60.0, 120.0)
 const MESA_SUPPRESSION := 0.8
 ## Must exceed every influence's reach (largest plaza + MESA_POI_CLEAR.y, MESA_ROAD_CLEAR.y, ...)
 ## so samples on either side of a chunk seam see the same roads and POIs.
-const INFLUENCE_MARGIN := 128.0
+const INFLUENCE_MARGIN := 140.0
 const MAX_CACHED_CELLS := 256
 
 var world_seed: int

@@ -12,7 +12,7 @@ func test_deterministic() -> void:
 			if a != null:
 				assert_eq(a.position, b.position)
 				assert_eq(a.display_name, b.display_name)
-				assert_eq(a.model_path, b.model_path)
+				assert_eq(a.type_id, b.type_id)
 
 
 func test_different_seed_changes_world() -> void:
@@ -37,7 +37,7 @@ func test_poi_inside_own_cell_with_margin() -> void:
 			assert_true(rect.has_point(poi.position_2d()), "poi %s outside margin" % poi.id)
 			assert_eq(poi.id, "%d_%d" % [x, z])
 			assert_true(poi.display_name.ends_with(poi.type_label))
-			assert_true(ResourceLoader.exists(poi.model_path), "missing model " + poi.model_path)
+			assert_true(BiomeMap.biome_at_cell(SEED, poi.cell).poi_layouts.has(poi.type_id), "no layouts for " + poi.type_id)
 	# 400 cells at 60% chance: wildly unlikely to fall outside this band.
 	assert_true(count > 180 and count < 300, "unexpected poi count %d" % count)
 

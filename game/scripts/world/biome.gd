@@ -22,8 +22,10 @@ var mesa_edge_band := 0.035
 var mesa_heights := Vector2.ZERO
 ## Amplitude of high-frequency mask noise that makes cliff outlines jagged.
 var mesa_jaggedness := 0.03
-## Each: {id, label, models: Array[String], scale: float, plaza_radius: float, weight: float}
+## Each: {id, label, weight, plaza_radius, ruin_chance}; the compound comes from poi_layouts[id].
 var poi_types: Array[Dictionary] = []
+## POI type id -> Array of layouts (see DesertPoiLayouts for the slot format).
+var poi_layouts: Dictionary = {}
 ## Each: {id, path, per_hectare: float, min_scale, max_scale, solid: bool, radius: float}
 ## `radius` is the footprint at scale 1, used for collision and spacing. Optional `sink` (metres
 ## at scale 1) buries the base so props don't float on the downhill side of slopes. Optional

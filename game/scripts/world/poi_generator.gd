@@ -29,9 +29,8 @@ static func poi_for_cell(world_seed: int, cell: Vector2i) -> PoiData:
 	var type := biome.pick_poi_type(rng)
 	poi.type_id = type.id
 	poi.type_label = type.label
-	poi.model_path = type.models[rng.randi() % type.models.size()]
-	poi.model_scale = type.scale
 	poi.plaza_radius = type.plaza_radius
+	poi.ruin_chance = type.ruin_chance
 	poi.display_name = "%s %s" % [NameGenerator.make(rng), type.label]
 	return poi
 

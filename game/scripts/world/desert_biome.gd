@@ -15,19 +15,13 @@ func _init() -> void:
 	mesa_threshold = 0.38
 	mesa_heights = Vector2(22.0, 14.0)
 	poi_types = [
-		{"id": "scrapyard", "label": "Scrapyard", "weight": 3.0, "scale": 9.0, "plaza_radius": 22.0,
-			"models": [MODELS + "industrial/building-a.glb", MODELS + "industrial/building-o.glb"]},
-		{"id": "factory", "label": "Factory", "weight": 2.0, "scale": 10.0, "plaza_radius": 20.0,
-			"models": [MODELS + "industrial/building-d.glb", MODELS + "industrial/building-k.glb"]},
-		{"id": "settlement", "label": "Settlement", "weight": 2.0, "scale": 10.0, "plaza_radius": 18.0,
-			"models": [MODELS + "commercial/building-a.glb", MODELS + "commercial/building-c.glb",
-				MODELS + "commercial/building-f.glb"]},
-		{"id": "homestead", "label": "Homestead", "weight": 2.0, "scale": 9.0, "plaza_radius": 18.0,
-			"models": [MODELS + "suburban/building-type-a.glb", MODELS + "suburban/building-type-c.glb",
-				MODELS + "suburban/building-type-h.glb"]},
-		{"id": "water_tower", "label": "Water Tower", "weight": 1.0, "scale": 9.0, "plaza_radius": 14.0,
-			"models": [MODELS + "industrial/water-tower.glb"]},
+		{"id": "scrapyard", "label": "Scrapyard", "weight": 3.0, "plaza_radius": 32.0, "ruin_chance": 0.3},
+		{"id": "factory", "label": "Factory", "weight": 2.0, "plaza_radius": 36.0, "ruin_chance": 0.45},
+		{"id": "settlement", "label": "Settlement", "weight": 2.0, "plaza_radius": 38.0, "ruin_chance": 0.55},
+		{"id": "homestead", "label": "Homestead", "weight": 2.0, "plaza_radius": 32.0, "ruin_chance": 0.4},
+		{"id": "water_tower", "label": "Water Tower", "weight": 1.0, "plaza_radius": 22.0, "ruin_chance": 0.3},
 	]
+	poi_layouts = DesertPoiLayouts.LAYOUTS
 	props = [
 		{"id": "dry_branches", "path": MODELS + "plants/dry_branches_a.res", "per_hectare": 3.0,
 			"min_scale": 2.5, "max_scale": 3.5, "solid": false, "radius": 0.3, "view_distance": 140.0},

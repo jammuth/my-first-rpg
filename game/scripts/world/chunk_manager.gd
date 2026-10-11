@@ -33,10 +33,9 @@ var _ready_queue: Array = []
 var _finished: Array = []
 var _mutex := Mutex.new()
 var _props := PropLibrary.new()
-var _model_scenes := {}
+var _poi_pieces := PoiPieceLibrary.new()
 var _prop_defs := {}
 var _road_material: ShaderMaterial
-var _plaza_material: StandardMaterial3D
 var _terrain_material: ShaderMaterial
 
 
@@ -44,9 +43,6 @@ func _ready() -> void:
 	world_seed = GameState.world_seed
 	terrain = TerrainSampler.new(world_seed)
 	_target = get_node(target_path)
-	_plaza_material = StandardMaterial3D.new()
-	_plaza_material.albedo_color = Color(0.56, 0.5, 0.44)
-	_plaza_material.roughness = 0.95
 	var biome := BiomeMap.biome_at_cell(world_seed, Vector2i.ZERO)
 	_terrain_material = _ground_material(preload("res://shaders/terrain.gdshader"), biome)
 	for map in ["cliff_color", "cliff_normal", "cliff_roughness"]:
@@ -256,7 +252,7 @@ func _build_content(data: ChunkData) -> void:
 		chunk.add_child(body)
 
 	for poi in data.pois:
-		chunk.add_child(PoiSite.create(poi, _model_scene(poi.model_path), _plaza_material))
+		chunk.add_child(PoiSite.create(poi, _poi_pieces))
 
 	add_child(chunk)
 	_content[data.cell] = chunk
@@ -268,9 +264,3 @@ func _prop_def(biome: Biome, prop_id: String) -> Dictionary:
 		for def in biome.props:
 			_prop_defs[biome.id + "/" + def.id] = def
 	return _prop_defs[key]
-
-
-func _model_scene(path: String) -> PackedScene:
-	if not _model_scenes.has(path):
-		_model_scenes[path] = load(path)
-	return _model_scenes[path]

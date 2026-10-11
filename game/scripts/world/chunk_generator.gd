@@ -31,6 +31,9 @@ static func generate(world_seed: int, cell: Vector2i, sampler: TerrainSampler = 
 	data.pois = PoiGenerator.pois_in_rect(world_seed, rect)
 	for poi in data.pois:
 		poi.position.y = sampler.poi_height(poi)
+		var biome := BiomeMap.biome_at_cell(world_seed, poi.cell)
+		poi.layout = PoiPlanner.plan(world_seed, poi, biome.poi_layouts[poi.type_id], poi.ruin_chance,
+			PoiPlanner.road_directions(poi, influences.roads))
 	var nearby_pois: Array[PoiData] = []
 	for e in influences.pois:
 		nearby_pois.append(e.poi)
