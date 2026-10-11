@@ -74,3 +74,31 @@ func test_roads_touching_rect_finds_every_crossing_road() -> void:
 		if not Geometry2DUtil.clip_segment_to_rect(r[0], r[1], rect).is_empty():
 			hits += 1
 	assert_eq(hits, expected)
+
+
+func test_directions_at_matches_owned_roads() -> void:
+	for x in range(-3, 3):
+		for z in range(-3, 3):
+			var poi := PoiGenerator.poi_for_cell(SEED, Vector2i(x, z))
+			if poi == null:
+				continue
+			var dirs := RoadNetwork.directions_at(SEED, Vector2i(x, z))
+			var expected := 0
+			for r in _all_roads(5):
+				if r[0].is_equal_approx(poi.position_2d()) or r[1].is_equal_approx(poi.position_2d()):
+					expected += 1
+			assert_eq(dirs.size(), expected, "poi %s" % poi.id)
+
+
+func test_junction_radius_grows_for_narrow_angles() -> void:
+	var wide: Array[Vector2] = [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1)]
+	assert_near(RoadNetwork.junction_radius(wide, 16.0, 40.0), 16.0, 0.001, "right angles fit the minimum pad")
+	var narrow: Array[Vector2] = [Vector2(1, 0), Vector2(1, 0).rotated(0.4)]
+	var r := RoadNetwork.junction_radius(narrow, 16.0, 40.0)
+	assert_true(r > 16.0, "narrow fork needs a bigger pad")
+	# By the plain-asphalt core's edge the two roads no longer overlap.
+	var core := r * RoadNetwork.JUNCTION_CORE
+	var gap := (narrow[0] * core).distance_to(narrow[1] * core)
+	assert_true(gap >= RoadNetwork.WIDTH, "roads still overlap at pad edge (gap %.1f)" % gap)
+	var parallel: Array[Vector2] = [Vector2(1, 0), Vector2(1, 0)]
+	assert_near(RoadNetwork.junction_radius(parallel, 16.0, 40.0), 40.0, 0.001, "capped")

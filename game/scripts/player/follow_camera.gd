@@ -7,6 +7,8 @@ extends Camera3D
 @export var look_height := 2.0
 ## Higher = camera swings round to the truck's heading faster.
 @export var yaw_sharpness := 4.0
+## Minimum height above the ground directly below the camera, so low orbits can't clip into dunes.
+@export var ground_clearance := 3.0
 
 @export_group("Orbit")
 ## Radians of orbit per pixel of mouse movement while right mouse is held.
@@ -17,6 +19,8 @@ extends Camera3D
 @export_range(5.0, 89.0) var max_pitch_degrees := 80.0
 ## Higher = snaps back to the default view faster once orbiting stops.
 @export var return_sharpness := 4.0
+
+var terrain: TerrainSampler
 
 var _target: Node3D
 var _yaw := 0.0
@@ -91,5 +95,8 @@ func _drag(delta_radians: Vector2) -> void:
 func _place(t: Transform3D) -> void:
 	var focus := t.origin + Vector3.UP * look_height
 	var pitch := deg_to_rad(pitch_degrees) + _orbit.y
-	global_position = focus + offset_for(_yaw + _orbit.x, pitch, distance)
+	var pos := focus + offset_for(_yaw + _orbit.x, pitch, distance)
+	if terrain != null:
+		pos.y = maxf(pos.y, terrain.height_at(pos.x, pos.z) + ground_clearance)
+	global_position = pos
 	look_at(focus, Vector3.UP)

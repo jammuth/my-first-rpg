@@ -10,7 +10,9 @@ size = Vector3(3, 3.2, 6.5)
 motion_mode = 1
 script = ExtResource("1_truck")
 
-[node name="Model" parent="." instance=ExtResource("2_model")]
+[node name="Tilt" type="Node3D" parent="."]
+
+[node name="Model" parent="Tilt" instance=ExtResource("2_model")]
 transform = Transform3D(-2, 0, 0, 0, 2, 0, 0, 0, -2, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]

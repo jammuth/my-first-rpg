@@ -1,0 +1,2 @@
+boulder_*: Poly Haven "namaqualand_boulder_02/04/05" (1K glTF, decimated by tools/bake_rocks.gd), https://polyhaven.com/models, CC0 1.0
+Originals kept in art_source/ (gitignored).

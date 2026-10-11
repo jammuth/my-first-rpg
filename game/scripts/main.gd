@@ -1,16 +1,23 @@
 extends Node3D
 
 const POI_REFRESH_INTERVAL := 0.2
+const FOG_BEGIN := 200.0
+const FOG_END := 500.0
 
 @onready var _truck: Truck = $Truck
 @onready var _camera: Camera3D = $FollowCamera
 @onready var _hud: Hud = $Hud
+@onready var _chunks: ChunkManager = $ChunkManager
 
 var _refresh_timer := 0.0
 var _interactable: PoiData
 
 
 func _ready() -> void:
+	_truck.terrain = _chunks.terrain
+	_camera.terrain = _chunks.terrain
+	_truck.snap_to_terrain()
+	_truck.reset_physics_interpolation()
 	$WorldEnvironment.environment = _make_environment()
 	_hud.poi_panel_closed.connect(func() -> void: _truck.controls_enabled = true)
 	_refresh_pois()
@@ -43,18 +50,37 @@ func _refresh_pois() -> void:
 
 
 func _make_environment() -> Environment:
+	var haze := Color(0.93, 0.80, 0.52)
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color(0.42, 0.58, 0.78)
+	sky_mat.sky_horizon_color = Color(0.95, 0.84, 0.60)
+	sky_mat.sky_curve = 0.12
+	sky_mat.ground_horizon_color = haze
+	sky_mat.ground_bottom_color = Color(0.70, 0.56, 0.36)
+	sky_mat.sun_angle_max = 20.0
+	var sky := Sky.new()
+	sky.sky_material = sky_mat
+	# Ambient/reflections only change with time of day, so a slow update keeps the GPU cost negligible.
+	sky.process_mode = Sky.PROCESS_MODE_INCREMENTAL
+
 	var env := Environment.new()
-	var haze := Color(0.86, 0.76, 0.62)
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = haze
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.75, 0.72, 0.68)
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.ambient_light_energy = 0.6
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_DEPTH
 	env.fog_light_color = haze
+	env.fog_light_energy = 1.0
+	env.fog_sun_scatter = 0.35
 	env.fog_density = 1.0
-	env.fog_depth_begin = 150.0
-	env.fog_depth_end = 290.0
+	env.fog_depth_curve = 1.6
+	env.fog_depth_begin = FOG_BEGIN
+	env.fog_depth_end = FOG_END
+	# Keeps the upper sky visible when the camera orbits low instead of fogging it out completely.
+	env.fog_sky_affect = 0.3
+	env.fog_height = -12.0
+	env.fog_height_density = 0.02
 	return env
