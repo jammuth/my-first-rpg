@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/truck.gd" id="1_truck"]
+[ext_resource type="PackedScene" path="res://assets/models/vehicles/delivery.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(3, 3.2, 6.5)
+
+[node name="Truck" type="CharacterBody3D" groups=["player"]]
+motion_mode = 1
+script = ExtResource("1_truck")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(-2, 0, 0, 0, 2, 0, 0, 0, -2, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+shape = SubResource("BoxShape3D_body")
