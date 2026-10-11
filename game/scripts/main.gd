@@ -1,6 +1,7 @@
 extends Node3D
 
 const POI_REFRESH_INTERVAL := 0.2
+const EXPLORATION_SCENE := "res://scenes/exploration.tscn"
 
 @onready var _truck: Truck = $Truck
 @onready var _camera: Camera3D = $FollowCamera
@@ -39,6 +40,7 @@ func _ready() -> void:
 		bench.overlay = overlay
 		add_child(bench)
 	_hud.poi_panel_closed.connect(func() -> void: _truck.controls_enabled = true)
+	_hud.explore_requested.connect(_explore)
 	_refresh_pois()
 
 
@@ -68,6 +70,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameState.mark_visited(_interactable.id)
 		_truck.controls_enabled = false
 		_hud.open_poi_panel(_interactable, first)
+
+
+func _explore(poi: PoiData) -> void:
+	GameState.start_exploration(poi)
+	get_tree().change_scene_to_file.call_deferred(EXPLORATION_SCENE)
 
 
 func truck_world_position() -> Vector2:

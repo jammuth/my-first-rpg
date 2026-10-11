@@ -2,6 +2,7 @@ class_name Hud
 extends CanvasLayer
 
 signal poi_panel_closed
+signal explore_requested(poi: PoiData)
 
 var compass: Compass
 var _prompt: PanelContainer
@@ -11,6 +12,8 @@ var _panel_title: Label
 var _panel_type: Label
 var _panel_note: Label
 var _leave: Button
+var _explore: Button
+var _panel_poi: PoiData
 var _using_gamepad := false
 var _prompt_poi: PoiData
 
@@ -48,12 +51,16 @@ func _ready() -> void:
 	_panel_type.add_theme_font_size_override("font_size", 18)
 	_panel_note = Label.new()
 	_panel_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_panel_note.text = "Nothing to do here yet. Battles and scavenging will hook in here."
+	_panel_note.text = "Park the truck and search the site on foot for scrap."
+	_explore = Button.new()
+	_explore.text = "Explore on foot"
+	_explore.custom_minimum_size = Vector2(0, 44)
+	_explore.pressed.connect(func() -> void: explore_requested.emit(_panel_poi))
 	_leave = Button.new()
 	_leave.text = "Leave"
 	_leave.custom_minimum_size = Vector2(0, 44)
 	_leave.pressed.connect(close_poi_panel)
-	for c in [_panel_title, _panel_type, _panel_note, _leave]:
+	for c in [_panel_title, _panel_type, _panel_note, _explore, _leave]:
 		box.add_child(c)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
@@ -97,17 +104,19 @@ func _refresh_prompt() -> void:
 
 
 func open_poi_panel(poi: PoiData, first_visit: bool) -> void:
+	_panel_poi = poi
 	_panel_title.text = poi.display_name
 	_panel_type.text = poi.type_label + ("  ·  first visit" if first_visit else "  ·  visited")
 	_panel.visible = true
 	_refresh_prompt()
-	_leave.grab_focus()
+	_explore.grab_focus()
 
 
 func close_poi_panel() -> void:
 	if not _panel.visible:
 		return
 	_panel.visible = false
-	_leave.release_focus()
+	if get_viewport().gui_get_focus_owner() != null:
+		get_viewport().gui_get_focus_owner().release_focus()
 	_refresh_prompt()
 	poi_panel_closed.emit()

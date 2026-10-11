@@ -26,3 +26,34 @@ func test_rejects_garbage_and_other_versions() -> void:
 func test_ignores_non_string_visited_entries() -> void:
 	var data := SaveGame.from_json('{"version": 1, "world_seed": 7, "visited": ["1_1", 5, null], "truck": {"x": 0, "z": 0, "yaw": 0}}')
 	assert_eq(data.visited, {"1_1": true})
+
+
+func test_v2_round_trips_exploration_progress() -> void:
+	var state := PoiState.new()
+	state.looted = {"crate_1": 42.0}
+	state.unlocked = {"door_1": true}
+	var stash: Array[Dictionary] = [{"id": "scrap_metal", "count": 7}]
+	var text := SaveGame.to_json(9, {}, Vector2.ZERO, 0.0, {
+		"play_time": 123.5, "poi_states": {"2_3": state, "empty": PoiState.new()}, "stash": stash})
+	var data := SaveGame.from_json(text)
+	assert_near(data.play_time, 123.5)
+	assert_eq(data.poi_states.keys(), ["2_3"], "empty POI states are not written")
+	assert_eq(data.poi_states["2_3"].looted, {"crate_1": 42.0})
+	assert_eq(data.poi_states["2_3"].unlocked, {"door_1": true})
+	assert_eq(data.stash, stash)
+
+
+func test_v1_saves_still_load_with_empty_progress() -> void:
+	var data := SaveGame.from_json('{"version": 1, "world_seed": 5, "visited": ["0_0"], "truck": {"x": 1, "z": 2, "yaw": 0.5}}')
+	assert_eq(data.world_seed, 5)
+	assert_eq(data.visited, {"0_0": true})
+	assert_near(data.play_time, 0.0)
+	assert_eq(data.poi_states, {})
+	assert_eq(data.stash.size(), 0)
+
+
+func test_bad_stash_entries_are_dropped() -> void:
+	var data := SaveGame.from_json('{"version": 2, "world_seed": 5, "visited": [], "truck": {"x": 0, "z": 0, "yaw": 0}, "play_time": -4, "stash": [{"id": "a", "count": 2}, {"id": "a", "count": 1}, {"id": 3, "count": 1}, {"id": "b", "count": 0}, "x"]}')
+	var expected: Array[Dictionary] = [{"id": "a", "count": 3}]
+	assert_eq(data.stash, expected)
+	assert_near(data.play_time, 0.0)
