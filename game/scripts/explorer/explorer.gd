@@ -25,6 +25,8 @@ var origin := Vector3.ZERO
 var level: ExplorationLevel
 ## True while pressed against the level boundary, for a HUD hint.
 var at_boundary := false
+## Plays the interact animation while standing still (searching, unlocking).
+var interacting := false
 
 var _model: Node3D
 var _anim: AnimationPlayer
@@ -49,6 +51,11 @@ func set_character(id: String) -> void:
 
 func face(yaw: float) -> void:
 	_model.rotation.y = yaw
+
+
+## Unit world x/z direction the model faces (its front is +Z).
+func facing() -> Vector2:
+	return Vector2(sin(_model.rotation.y), cos(_model.rotation.y))
 
 
 func _physics_process(delta: float) -> void:
@@ -103,6 +110,8 @@ func _keep_in_bounds() -> void:
 
 func _animate(speed: float) -> void:
 	var anim_name := ExplorerMotion.animation_for(speed, walk_speed)
+	if interacting and anim_name == ExplorerAnimations.IDLE:
+		anim_name = ExplorerAnimations.INTERACT
 	if _anim.current_animation != anim_name:
 		_anim.play(anim_name, 0.2)
 	# Keeps feet roughly matched to ground speed across analog deflection.
