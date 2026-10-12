@@ -1,6 +1,6 @@
 # Plan: POI exploration on foot
 
-Status: **Planned** (2026-10-11). This is roadmap milestone 2 and comes before battles.
+Status: **In progress**. Steps 1–3 are done (PRs #7–#9), step 4 is next. This is roadmap milestone 2 and comes before battles.
 
 ## Goal
 Entering a POI switches from the truck to a masked explorer on foot. The explorer searches the POI's level for scrap, gets into locked loot rooms with keys or by hacking, and survives random encounters. Loot only counts once it's carried back to the truck. There it breaks down over time into the elements that will later build drone parts.
