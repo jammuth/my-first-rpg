@@ -2,8 +2,8 @@ extends Node3D
 
 ## A POI on foot: the same terrain, roads and compound as the overworld (a ChunkManager streams
 ## them around the explorer), the truck parked where the player left it, and the level's search
-## spots marked. The debug panel (Tab / Start) drives the run's state until interactables, loot and
-## encounters replace it.
+## spots and loot-room doors to use. The debug panel (Tab / Start) stands in for encounters until
+## step 8.
 
 const OVERWORLD_SCENE := "res://scenes/main.tscn"
 const TRUCK_SCENE := preload("res://scenes/truck.tscn")
@@ -13,19 +13,32 @@ const BLOWING_SAND := preload("res://scripts/world/blowing_sand.gd")
 const MARKER_HEIGHT := 2.6
 const CONTAINER_COLOR := Color(1.0, 0.82, 0.35)
 const DOOR_COLOR := Color(0.45, 0.85, 1.0)
+const DONE_COLOR := Color(0.6, 0.6, 0.6, 0.6)
+## Stick deflection past this counts as walking off, which cancels a search.
+const MOVE_DEADZONE := 0.2
 
 var level: ExplorationLevel
 
 var _status: Label
 var _hint: Label
+var _prompt: Label
+var _progress: ProgressBar
 var _panel: PanelContainer
 var _first_button: Button
+var _truck_menu: PanelContainer
+var _truck_status: Label
+var _truck_first_button: Button
 var _session: ExplorationSession
 var _explorer: Explorer
 var _camera: ChaseCamera
 var _chunks: ChunkManager
 var _env: Environment
 var _sun: DirectionalLight3D
+var _interactables: Array[Interactable] = []
+## Interactable id -> Label3D over it.
+var _markers := {}
+var _target: Interactable
+var _timer: InteractionTimer
 
 
 func _ready() -> void:
@@ -36,32 +49,45 @@ func _ready() -> void:
 		return
 	var park := ExplorationLevel.parking(poi, GameState.start_position, GameState.start_yaw)
 	level = ExplorationLevel.build(GameState.world_seed, poi, park[0], park[1])
+	_interactables = Interactable.from_level(level)
 	_set_origin(WorldOrigin.origin_for(level.truck_position))
 	_build_world()
 	_build_ui()
-	_set_panel_open(false)
+	_close_menus()
 	_refresh()
 	DesertEnvironment.apply_graphics(_env, _camera.camera(), _sun, get_viewport())
 
 
-func _process(_delta: float) -> void:
-	var p := _explorer.global_position + GameState.origin
-	var here := Vector2(p.x, p.z)
-	if _explorer.at_boundary:
-		_hint.text = "Too far from the site. Head back."
-	elif level.in_extraction_zone(here):
-		_hint.text = "At the truck: Tab / Start to unload or drive away"
-	else:
-		_hint.text = ""
+func _process(delta: float) -> void:
+	_hint.text = "Too far from the site. Head back." if _explorer.at_boundary else ""
+	_target = null if _menu_open() else Interactable.pick(_available(), _explorer_xz(), _explorer.facing())
+	if _timer != null:
+		var moving := Input.get_vector("walk_left", "walk_right", "walk_forward", "walk_back").length() > MOVE_DEADZONE
+		if InteractionTimer.should_cancel(moving, false, _timer.target, _target):
+			_stop_timer()
+		elif _timer.advance(delta):
+			var finished := _timer.target
+			_stop_timer()
+			_complete(finished)
+	_show_prompt()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("exploration_menu") or (_panel.visible and event.is_action_pressed("ui_cancel")):
+	if event.is_action_pressed("exploration_menu") and not _truck_menu.visible:
 		get_viewport().set_input_as_handled()
-		_set_panel_open(not _panel.visible)
+		if _panel.visible:
+			_close_menus()
+		else:
+			_open_menu(_panel, _first_button)
+	elif _menu_open() and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_close_menus()
+	elif not _menu_open() and event.is_action_pressed("interact"):
+		get_viewport().set_input_as_handled()
+		_on_interact()
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	elif event is InputEventMouseButton and event.pressed and not _panel.visible:
+	elif event is InputEventMouseButton and event.pressed and not _menu_open():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -72,6 +98,59 @@ func _set_origin(origin: Vector3) -> void:
 
 func _local(world: Vector2, height: float = 0.0) -> Vector3:
 	return Vector3(world.x, height, world.y) - GameState.origin
+
+
+func _explorer_xz() -> Vector2:
+	var p := _explorer.global_position + GameState.origin
+	return Vector2(p.x, p.z)
+
+
+func _available() -> Array[Interactable]:
+	return _interactables.filter(func(it: Interactable) -> bool: return not _is_done(it))
+
+
+func _is_done(it: Interactable) -> bool:
+	match it.kind:
+		Interactable.Kind.CONTAINER:
+			return _session.is_looted(it.id)
+		Interactable.Kind.DOOR:
+			return _session.is_unlocked(it.id)
+		_:
+			return false
+
+
+func _on_interact() -> void:
+	if _timer != null:
+		_stop_timer()
+	elif _target == null:
+		return
+	elif _target.kind == Interactable.Kind.TRUCK:
+		_open_menu(_truck_menu, _truck_first_button)
+	else:
+		_timer = InteractionTimer.new(_target)
+		_explorer.interacting = true
+
+
+func _stop_timer() -> void:
+	_timer = null
+	_explorer.interacting = false
+
+
+func _complete(it: Interactable) -> void:
+	if it.kind == Interactable.Kind.DOOR:
+		_session.unlock(it.id)
+	# A loot room's haul is booked under its door's id until loot rooms get their own loot window.
+	_session.loot(it.id, it.placeholder_loot(), GameState.play_time)
+	_refresh()
+
+
+func _show_prompt() -> void:
+	_progress.visible = _timer != null
+	if _timer != null:
+		_prompt.text = "%s    (E / A or move to cancel)" % _timer.target.progress_text()
+		_progress.value = _timer.fraction()
+	else:
+		_prompt.text = _target.prompt() if _target != null else ""
 
 
 func _build_world() -> void:
@@ -125,17 +204,14 @@ func _build_world() -> void:
 	sand.set("target_path", NodePath("../Explorer"))
 	add_child(sand)
 
-	for c in level.containers:
-		_add_marker(c.position, c.kind.to_upper(), CONTAINER_COLOR)
-	for d in level.loot_rooms:
-		_add_marker(d.position, "LOOT ROOM", DOOR_COLOR)
+	for it in _interactables:
+		if it.kind != Interactable.Kind.TRUCK:
+			_markers[it.id] = _add_marker(it.position)
 
 
-## Placeholder labels over search spots and loot-room doors until step 4 makes them interactable.
-func _add_marker(world: Vector2, text: String, color: Color) -> void:
+## Placeholder labels over search spots and loot-room doors until they get proper highlights.
+func _add_marker(world: Vector2) -> Label3D:
 	var label := Label3D.new()
-	label.text = text
-	label.modulate = color
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.font_size = 48
 	label.pixel_size = 0.02
@@ -143,15 +219,42 @@ func _add_marker(world: Vector2, text: String, color: Color) -> void:
 	label.no_depth_test = false
 	label.position = _local(world, _chunks.terrain.height_at(world.x, world.y) + MARKER_HEIGHT)
 	add_child(label)
+	return label
 
 
-func _set_panel_open(open: bool) -> void:
-	_panel.visible = open
-	_explorer.controls_enabled = not open
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if open else Input.MOUSE_MODE_CAPTURED
-	if open:
-		_first_button.grab_focus()
-	elif get_viewport().gui_get_focus_owner() != null:
+func _refresh_markers() -> void:
+	for it in _interactables:
+		if not _markers.has(it.id):
+			continue
+		var label: Label3D = _markers[it.id]
+		var done := _is_done(it)
+		if it.kind == Interactable.Kind.DOOR:
+			label.text = "OPEN" if done else "LOOT ROOM"
+			label.modulate = DONE_COLOR if done else DOOR_COLOR
+		else:
+			label.text = "SEARCHED" if done else it.label.to_upper()
+			label.modulate = DONE_COLOR if done else CONTAINER_COLOR
+
+
+func _menu_open() -> bool:
+	return _panel.visible or _truck_menu.visible
+
+
+func _open_menu(menu: PanelContainer, focus: Button) -> void:
+	_stop_timer()
+	_panel.visible = menu == _panel
+	_truck_menu.visible = menu == _truck_menu
+	_explorer.controls_enabled = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	focus.grab_focus()
+
+
+func _close_menus() -> void:
+	_panel.visible = false
+	_truck_menu.visible = false
+	_explorer.controls_enabled = true
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if get_viewport().gui_get_focus_owner() != null:
 		get_viewport().gui_get_focus_owner().release_focus()
 
 
@@ -159,7 +262,7 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var keys := Label.new()
-	keys.text = "Tab / Start: debug actions    V / R3: shoulder view    Shift / L3: run"
+	keys.text = "E / A: interact    Tab / Start: debug actions    V / R3: shoulder view    Shift / L3: run"
 	_outline(keys)
 	keys.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	keys.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -174,37 +277,78 @@ func _build_ui() -> void:
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_hint.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_hint.offset_top = -120
-	_hint.offset_bottom = -80
+	_hint.offset_top = -200
+	_hint.offset_bottom = -160
 	layer.add_child(_hint)
 
-	_panel = PanelContainer.new()
-	_panel.position = Vector2(24, 24)
-	layer.add_child(_panel)
+	var prompt_box := VBoxContainer.new()
+	prompt_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	prompt_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	prompt_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	prompt_box.offset_top = -150
+	prompt_box.offset_bottom = -80
+	prompt_box.alignment = BoxContainer.ALIGNMENT_END
+	layer.add_child(prompt_box)
+	_prompt = Label.new()
+	_prompt.add_theme_font_size_override("font_size", 24)
+	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_outline(_prompt)
+	prompt_box.add_child(_prompt)
+	_progress = ProgressBar.new()
+	_progress.max_value = 1.0
+	_progress.show_percentage = false
+	_progress.custom_minimum_size = Vector2(320, 14)
+	_progress.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	prompt_box.add_child(_progress)
+
+	var box := _menu(layer, false)
+	_panel = box.get_parent().get_parent()
+	_title(box, level.poi.display_name)
+	var note := Label.new()
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.text = "Debug actions until random encounters arrive."
+	box.add_child(note)
+	_status = Label.new()
+	box.add_child(_status)
+	_first_button = _button(box, "Lose an encounter (debug)", _lose_encounter)
+	_button(box, "Close", _close_menus)
+
+	var truck_box := _menu(layer, true)
+	_truck_menu = truck_box.get_parent().get_parent()
+	_title(truck_box, "Truck")
+	_truck_status = Label.new()
+	truck_box.add_child(_truck_status)
+	_truck_first_button = _button(truck_box, "Unload the bag", _unload)
+	_button(truck_box, "Unload and drive away", _drive_away)
+	_button(truck_box, "Cancel", _close_menus)
+
+
+## A panel with a column for its contents; returns the column (the panel is two parents up).
+func _menu(layer: CanvasLayer, centred: bool) -> VBoxContainer:
+	var panel := PanelContainer.new()
+	if centred:
+		panel.set_anchors_preset(Control.PRESET_CENTER)
+		panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	else:
+		panel.position = Vector2(24, 24)
+	layer.add_child(panel)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 18)
-	_panel.add_child(margin)
+	panel.add_child(margin)
 	var box := VBoxContainer.new()
 	box.custom_minimum_size = Vector2(380, 0)
 	box.add_theme_constant_override("separation", 10)
 	margin.add_child(box)
+	return box
 
+
+func _title(box: VBoxContainer, text: String) -> void:
 	var title := Label.new()
 	title.add_theme_font_size_override("font_size", 26)
-	title.text = level.poi.display_name
+	title.text = text
 	box.add_child(title)
-	var note := Label.new()
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.text = "Placeholder: searching, loot rooms and encounters arrive in later steps."
-	box.add_child(note)
-	_status = Label.new()
-	box.add_child(_status)
-
-	_first_button = _button(box, "Search a crate (debug)", _search_crate)
-	_button(box, "Lose an encounter (debug)", _lose_encounter)
-	_button(box, "Unload at truck", _unload)
-	_button(box, "Drive away", _drive_away)
 
 
 func _outline(label: Label) -> void:
@@ -221,15 +365,6 @@ func _button(parent: Control, text: String, action: Callable) -> Button:
 	return b
 
 
-func _search_crate() -> void:
-	var i := 0
-	while _session.is_looted("debug_crate_%d" % i):
-		i += 1
-	var items: Array[Dictionary] = [{"id": "scrap_metal", "count": 1 + i % 3}]
-	_session.loot("debug_crate_%d" % i, items, GameState.play_time)
-	_refresh()
-
-
 func _lose_encounter() -> void:
 	_session.defeat()
 	_refresh()
@@ -238,6 +373,7 @@ func _lose_encounter() -> void:
 func _unload() -> void:
 	GameState.unload_at_truck()
 	_refresh()
+	_close_menus()
 
 
 func _drive_away() -> void:
@@ -247,6 +383,13 @@ func _drive_away() -> void:
 
 
 func _refresh() -> void:
-	_status.text = "Bag: %d scrap\nTruck stash: %d scrap\nSearch spots: %d    Loot rooms: %d" % [
-		ItemStacks.total(_session.bag), ItemStacks.total(GameState.truck_stash),
-		level.containers.size(), level.loot_rooms.size()]
+	var searched := _interactables.filter(func(it: Interactable) -> bool:
+		return it.kind == Interactable.Kind.CONTAINER and _is_done(it)).size()
+	var opened := _interactables.filter(func(it: Interactable) -> bool:
+		return it.kind == Interactable.Kind.DOOR and _is_done(it)).size()
+	var stash := "Bag: %d scrap\nTruck stash: %d scrap" % [
+		ItemStacks.total(_session.bag), ItemStacks.total(GameState.truck_stash)]
+	_truck_status.text = stash
+	_status.text = "%s\nSearched: %d / %d    Loot rooms open: %d / %d\nEncounters this run: %d" % [
+		stash, searched, level.containers.size(), opened, level.loot_rooms.size(), _session.encounters]
+	_refresh_markers()
