@@ -21,6 +21,10 @@ var play_time := 0.0
 var poi_states: Dictionary = {}
 ## Unloaded scrap waiting at the truck.
 var truck_stash: Array[Dictionary] = []
+## Breaks queued scrap down into elements while the game runs (overworld and exploration alike).
+var refinery := Refinery.new()
+## element -> amount refined so far.
+var elements: Dictionary = {}
 ## The run in progress, or null in the overworld. Never saved: quitting mid-run behaves like
 ## walking away from the POI without unloading.
 var exploration: ExplorationSession = null
@@ -46,6 +50,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	play_time += delta
+	add_elements(refinery.advance(delta))
 	_autosave_timer -= delta
 	if _autosave_timer <= 0.0:
 		_autosave_timer = AUTOSAVE_INTERVAL
@@ -60,6 +65,11 @@ func _notification(what: int) -> void:
 func mark_visited(poi_id: String) -> void:
 	visited_pois[poi_id] = true
 	save_game()
+
+
+func add_elements(gained: Dictionary) -> void:
+	for element: String in gained:
+		elements[element] = elements.get(element, 0) + gained[element]
 
 
 func is_visited(poi_id: String) -> bool:
@@ -78,6 +88,8 @@ func new_game() -> void:
 	play_time = 0.0
 	poi_states = {}
 	truck_stash = []
+	refinery = Refinery.new()
+	elements = {}
 	exploration = null
 	exploration_poi = null
 	save_game()
@@ -124,6 +136,8 @@ func save_game() -> void:
 		"play_time": play_time,
 		"poi_states": poi_states,
 		"stash": truck_stash,
+		"refinery": refinery.to_dict(),
+		"elements": elements,
 		"character": character_id,
 	}))
 
@@ -144,6 +158,8 @@ func load_game() -> void:
 	play_time = data.play_time
 	poi_states = data.poi_states
 	truck_stash = data.stash
+	refinery = Refinery.from_dict(data.refinery)
+	elements = data.elements
 	if CharacterOptions.is_valid(data.character):
 		character_id = data.character
 	has_save = true

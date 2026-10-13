@@ -5,7 +5,7 @@ Order of milestones for the MVP and beyond. Each milestone gets its own plan in 
 | # | Milestone | Status | Plan |
 |---|---|---|---|
 | 1 | Overworld: world generation and driving | ✅ Done (PRs #1–#5) | [desert-visuals.md](plans/desert-visuals.md) (visuals phase) |
-| 2 | POI exploration on foot | 🚧 In progress (steps 1–5 of 10 done) | [poi-exploration.md](plans/poi-exploration.md) |
+| 2 | POI exploration on foot | 🚧 In progress (steps 1–5 and 9 of 10 done) | [poi-exploration.md](plans/poi-exploration.md) |
 | 3 | Turn-based drone battles | ⏳ Not started | — |
 | 4 | Drone building and upgrading | ⏳ Not started | — |
 | 5 | Story mode | ⏳ Not started | — |
@@ -24,7 +24,7 @@ Order of milestones for the MVP and beyond. Each milestone gets its own plan in 
 - Looting uses a slot bag with rarities. Loot only counts once it's back at the truck.
 - Locked loot rooms open with a key or a hacking minigame.
 - Random encounters open a placeholder battle screen, where the real battle system plugs in later.
-- At the truck, scrap breaks down into elements over time.
+- At the truck, scrap breaks down into elements over time, in a workshop with one upgradable refining slot.
 
 ## 3. Turn-based drone battles
 - Medabots-style drones built from parts. Each part (left arm, right arm, head, legs) gives the drone actions.

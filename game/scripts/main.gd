@@ -10,6 +10,7 @@ const EXPLORATION_SCENE := "res://scenes/exploration.tscn"
 
 var _refresh_timer := 0.0
 var _interactable: PoiData
+var _workshop: Workshop
 
 
 # Runs before children's _ready, so the truck is at its (saved) spot and the origin is set before
@@ -41,6 +42,11 @@ func _ready() -> void:
 		add_child(bench)
 	_hud.poi_panel_closed.connect(func() -> void: _truck.controls_enabled = true)
 	_hud.explore_requested.connect(_explore)
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	_workshop = Workshop.new()
+	layer.add_child(_workshop)
+	_workshop.closed.connect(func() -> void: _truck.controls_enabled = true)
 	_refresh_pois()
 
 
@@ -64,7 +70,13 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("interact") and _interactable != null and not _hud.is_poi_panel_open():
+	if _workshop.visible:
+		return
+	if event.is_action_pressed("exploration_menu") and not _hud.is_poi_panel_open():
+		get_viewport().set_input_as_handled()
+		_truck.controls_enabled = false
+		_workshop.open()
+	elif event.is_action_pressed("interact") and _interactable != null and not _hud.is_poi_panel_open():
 		get_viewport().set_input_as_handled()
 		var first := not GameState.is_visited(_interactable.id)
 		GameState.mark_visited(_interactable.id)
