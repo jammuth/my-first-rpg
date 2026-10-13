@@ -71,12 +71,13 @@ static func pick(targets: Array[Interactable], explorer: Vector2, facing: Vector
 	return best
 
 
-func prompt() -> String:
+## `opened`: already searched or unlocked, so using it again just opens the loot window.
+func prompt(opened := false) -> String:
 	match kind:
 		Kind.CONTAINER:
-			return "Press E / A to search the %s" % label
+			return "Press E / A to %s the %s" % ["open" if opened else "search", label]
 		Kind.DOOR:
-			return "Press E / A to unlock the loot room"
+			return "Press E / A to %s the loot room" % ["open" if opened else "unlock"]
 		_:
 			return "Press E / A to use the truck"
 
@@ -85,7 +86,10 @@ func progress_text() -> String:
 	return "Searching the %s…" % label if kind == Kind.CONTAINER else "Unlocking…"
 
 
-## Placeholder haul until loot tables arrive (step 5): a little scrap, fixed per spot.
-func placeholder_loot() -> Array[Dictionary]:
-	var count := 3 if kind == Kind.DOOR else 1 + absi(hash(id)) % 3
-	return [{"id": "scrap_metal", "count": count}]
+## Which LootTables entry fills it.
+func loot_kind() -> String:
+	return "loot_room" if kind == Kind.DOOR else label
+
+
+func title() -> String:
+	return "Loot room" if kind == Kind.DOOR else label.capitalize()

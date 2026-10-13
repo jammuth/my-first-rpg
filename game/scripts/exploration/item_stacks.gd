@@ -1,7 +1,8 @@
 class_name ItemStacks
 extends RefCounted
 
-## Items are {"id": String, "count": int}. Stack limits and bag capacity arrive with the bag (step 5).
+## Merged item stacks {"id": String, "count": int} with no size limit, as the truck stash and saves
+## keep them. The bag (Bag) splits them into slots.
 
 
 static func merge(into: Array[Dictionary], items: Array[Dictionary]) -> void:
@@ -26,3 +27,18 @@ static func total(stacks: Array[Dictionary]) -> int:
 	for stack in stacks:
 		n += stack.count
 	return n
+
+
+## Stacks from saved JSON, merging duplicates and skipping malformed entries.
+static func read(data: Variant) -> Array[Dictionary]:
+	var stacks: Array[Dictionary] = []
+	if not data is Array:
+		return stacks
+	for entry: Variant in data:
+		if not (entry is Dictionary and entry.get("id") is String):
+			continue
+		var count: Variant = entry.get("count")
+		if (count is float or count is int) and count >= 1:
+			var item: Array[Dictionary] = [{"id": entry.id, "count": int(entry.count)}]
+			merge(stacks, item)
+	return stacks

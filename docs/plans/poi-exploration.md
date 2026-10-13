@@ -1,6 +1,6 @@
 # Plan: POI exploration on foot
 
-Status: **In progress**. Steps 1–3 are done (PRs #7–#9), step 4 is next. This is roadmap milestone 2 and comes before battles.
+Status: **In progress**. Steps 1–5 are done (PRs #7–#9, #12 and the loot PR), step 6 is next. This is roadmap milestone 2 and comes before battles.
 
 ## Goal
 Entering a POI switches from the truck to a masked explorer on foot. The explorer searches the POI's level for scrap, gets into locked loot rooms with keys or by hacking, and survives random encounters. Loot only counts once it's carried back to the truck. There it breaks down over time into the elements that will later build drone parts.
@@ -17,6 +17,12 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 - **Combat:** the explorer never attacks. Encounters are drone battles, handled by a placeholder screen until milestone 3.
 - **Buildings are not walk-in.** A locked door opens a **loot window** listing the container's contents, extraction-shooter style.
 - **Bag:** 15 slots in 3 rows of 5, with item stacks and colour-coded rarity, similar to Arc Raiders. No grid packing (it's awkward on a gamepad). The exploration drone adds extra slots on top (see Proposed defaults). A weight limit is parked for later.
+- **Searching (step 4):** press E / A once and the bar fills by itself. Moving, pressing again or losing the target cancels it. Unlocking a door works the same way. Interacting with the truck opens a menu: Unload / Unload and drive away / Cancel.
+- **Loot window (step 5):**
+  - Containers hold 1–4 stacks by kind, and a loot room holds 4–6.
+  - Items left behind stay in the container, are saved with the POI, and are reset by a defeat like the rest of the run.
+  - Drop only works while a loot window is open: it moves a bag stack into that container.
+  - I / Y opens the bag on its own to look at it and swap slots (Select is the debug overlay).
 - **Search time:** searching a container takes 1–3 s while the encounter meter keeps running.
 - **Camera:** a centred third-person chase camera, slightly high, with a SpringArm so walls don't clip it. The over-the-shoulder offset is a setting to try in-game.
 - **Loot economy:** loot is scrap. At the truck, scrap breaks down into elements over time. Elements build drone parts in milestone 4.
