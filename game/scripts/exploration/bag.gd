@@ -4,7 +4,7 @@ extends RefCounted
 ## Slot-based bag: each slot is empty ({}) or one stack {"id", "count"} no bigger than the item's
 ## stack size. No grid packing, so every item takes exactly one slot.
 
-const SLOTS := 15
+const SLOTS := 8
 
 var slots: Array[Dictionary] = []
 
