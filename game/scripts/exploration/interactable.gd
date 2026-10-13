@@ -9,7 +9,6 @@ enum Kind { CONTAINER, DOOR, TRUCK }
 
 ## Seconds to search each container kind (the plan allows 1–3 s).
 const SEARCH_TIME := {"barrel": 1.0, "trash": 1.5, "furniture": 1.5, "crate": 2.0, "wreck": 3.0}
-const UNLOCK_TIME := 2.0
 ## How far off the explorer's facing a target may be and still be picked.
 const MAX_FACING_ANGLE := deg_to_rad(70.0)
 const TRUCK_RADIUS := 2.0
@@ -45,7 +44,7 @@ static func from_level(level: ExplorationLevel) -> Array[Interactable]:
 		out.append(make(c.id, Kind.CONTAINER, c.position, c.reach - ExplorationLevel.REACH, c.reach,
 			SEARCH_TIME.get(c.kind, 2.0), c.kind))
 	for d in level.loot_rooms:
-		out.append(make(d.id, Kind.DOOR, d.position, 0.0, ExplorationLevel.REACH + 0.6, UNLOCK_TIME))
+		out.append(make(d.id, Kind.DOOR, d.position, 0.0, ExplorationLevel.REACH + 0.6, 0.0))
 	out.append(make("truck", Kind.TRUCK, level.truck_position, TRUCK_RADIUS,
 		ExplorationLevel.EXTRACTION_RADIUS, 0.0))
 	return out
@@ -83,7 +82,7 @@ func prompt(opened := false) -> String:
 
 
 func progress_text() -> String:
-	return "Searching the %s…" % label if kind == Kind.CONTAINER else "Unlocking…"
+	return "Searching the %s…" % label
 
 
 ## Which LootTables entry fills it.

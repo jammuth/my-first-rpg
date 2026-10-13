@@ -29,6 +29,10 @@ var _truck_menu: PanelContainer
 var _truck_status: Label
 var _truck_first_button: Button
 var _loot: LootWindow
+var _door_menu: PanelContainer
+var _door_first_button: Button
+## The locked door the Unlock popup is for.
+var _door: Interactable
 var _session: ExplorationSession
 var _explorer: Explorer
 var _camera: ChaseCamera
@@ -76,7 +80,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _loot.visible:
 		return
-	if event.is_action_pressed("exploration_menu") and not _truck_menu.visible:
+	if event.is_action_pressed("exploration_menu") and not _truck_menu.visible and not _door_menu.visible:
 		get_viewport().set_input_as_handled()
 		if _panel.visible:
 			_close_menus()
@@ -140,6 +144,9 @@ func _on_interact() -> void:
 		_open_menu(_truck_menu, _truck_first_button)
 	elif _is_opened(_target):
 		_open_loot(_target)
+	elif _target.kind == Interactable.Kind.DOOR:
+		_door = _target
+		_open_menu(_door_menu, _door_first_button)
 	else:
 		_timer = InteractionTimer.new(_target)
 		_explorer.interacting = true
@@ -151,9 +158,13 @@ func _stop_timer() -> void:
 
 
 func _complete(it: Interactable) -> void:
-	if it.kind == Interactable.Kind.DOOR:
-		_session.unlock(it.id)
 	_open_loot(it)
+
+
+## Stands in for keys and the drone's hack until they're built.
+func _unlock_door() -> void:
+	_session.unlock(_door.id)
+	_open_loot(_door)
 
 
 func _open_loot(it: Interactable) -> void:
@@ -263,7 +274,7 @@ func _refresh_markers() -> void:
 
 
 func _menu_open() -> bool:
-	return _panel.visible or _truck_menu.visible or _loot.visible
+	return _panel.visible or _truck_menu.visible or _door_menu.visible or _loot.visible
 
 
 ## `focus` may be null when the menu sets its own focus.
@@ -271,6 +282,7 @@ func _open_menu(menu: PanelContainer, focus: Button) -> void:
 	_stop_timer()
 	_panel.visible = menu == _panel
 	_truck_menu.visible = menu == _truck_menu
+	_door_menu.visible = menu == _door_menu
 	_explorer.controls_enabled = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if focus != null:
@@ -280,6 +292,7 @@ func _open_menu(menu: PanelContainer, focus: Button) -> void:
 func _close_menus() -> void:
 	_panel.visible = false
 	_truck_menu.visible = false
+	_door_menu.visible = false
 	_loot.close()
 	_explorer.controls_enabled = true
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -350,6 +363,15 @@ func _build_ui() -> void:
 	_truck_first_button = _button(truck_box, "Unload the bag", _unload)
 	_button(truck_box, "Unload and drive away", _drive_away)
 	_button(truck_box, "Cancel", _close_menus)
+
+	var door_box := _menu(layer, true)
+	_door_menu = door_box.get_parent().get_parent()
+	_title(door_box, "Loot room")
+	var locked := Label.new()
+	locked.text = "The door is locked."
+	door_box.add_child(locked)
+	_door_first_button = _button(door_box, "Unlock", _unlock_door)
+	_button(door_box, "Cancel", _close_menus)
 
 	_loot = LootWindow.new()
 	layer.add_child(_loot)
