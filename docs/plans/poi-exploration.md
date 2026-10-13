@@ -1,6 +1,6 @@
 # Plan: POI exploration on foot
 
-Status: **In progress**. Steps 1–5 are done (PRs #7–#9, #12 and the loot PR), step 6 is next. This is roadmap milestone 2 and comes before battles.
+Status: **In progress**. Steps 1–5 and 9 are done. Step 6 is cut down to an Unlock button for now, and step 7 (exploration drone) is next. This is roadmap milestone 2 and comes before battles.
 
 ## Goal
 Entering a POI switches from the truck to a masked explorer on foot. The explorer searches the POI's level for scrap, gets into locked loot rooms with keys or by hacking, and survives random encounters. Loot only counts once it's carried back to the truck. There it breaks down over time into the elements that will later build drone parts.
@@ -32,7 +32,15 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
   - The POI resets to its state as of your last unload at the truck.
   - For now, the placeholder battle screen automatically loses the 3rd encounter of a run, so this path can be tested.
 - **Looted POIs** stay looted in v1. The save stores *when* each container was looted, so the later refill (bandits move back in) only needs a rule, not a new save format.
-- **Hacking (temporary minigame, kept simple):**
+- **Doors for now (2026-10-13):** keys and the hacking minigame are put off. A locked door opens a popup with an **Unlock** button, which goes straight to the loot window. Keys and the drone's hack slot into that popup later; the minigame design below stays as the plan for then.
+- **Workshop and refining (step 9, 2026-10-13):**
+  - A full-screen 2D workshop, with no 3D truck interior. It sits over a background image at `game/assets/ui/workshop_background.png`, or a plain dark fill until that exists.
+  - It shows the stash, **one refining slot** fed by a queue, and the element totals. Upgrades will add slots later (`Refinery.set_slot_count`).
+  - It opens with Tab / Start in the overworld, or from the truck menu in a POI.
+  - Each item takes 10 / 20 / 45 / 90 s of play time by rarity, counted per item.
+  - Each item's yield follows its material and rarity: its main element gives 2 / 4 / 7 / 12, a secondary element gives half, and epics add 1 core.
+  - The 5 elements stay: metal, circuitry, polymer, power, core.
+- **Hacking (temporary minigame, kept simple, deferred):**
   - The target code is shown at the top of the puzzle screen, with a row of symbols below it.
   - Mouse: click the button above or below a symbol to cycle it.
   - Controller: left/right selects a symbol, up/down cycles it.
@@ -44,7 +52,7 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 
 ## Proposed defaults (change them if you disagree)
 - **Breakdown timer:** runs on in-game play time (overworld and exploration), not real time while the game is closed. That rules out clock-change exploits.
-- **Elements v1:** metal, circuitry, polymer, power cells, and a rare "core" element. Each scrap item has a fixed yield table. Rarer scrap gives more of the rarer elements.
+- **Elements v1:** metal, circuitry, polymer, power cells, and a rare "core" element. Yields follow each item's material and rarity (see Workshop and refining above).
 - **Rarity tiers:** common, uncommon, rare, epic, with Arc Raiders-like colours.
 - **Drone bag slots:** +5, as one extra row below the 15-slot bag.
 
@@ -99,7 +107,7 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 - Loot window UI: container contents on one side, bag on the other. Works on gamepad first.
 - **Tests:** loot rolls are deterministic, rarity weights add up, stacking and overflow rules, rejecting items when the bag is full.
 
-### 6. Puzzles: keys and hacking
+### 6. Puzzles: keys and hacking (deferred; an Unlock button stands in)
 - Loot-room doors are locked. Each one gets a key in a container elsewhere in the POI. The generator guarantees the key is reachable without opening the door it unlocks (a dependency graph with no cycles).
 - Hacking: the drone runs the symbol minigame described under Decided. The code and the starting symbols are deterministic per door, and the starting symbols never already match the code.
 - **Tests:** the key–door graph is always solvable over many seeds; cycling symbols wraps around; the code check; the starting symbols never match; the meter keeps filling while hacking.
@@ -120,7 +128,7 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 - Defeat flow as described under Decided.
 - **Tests:** meter accumulation, deterministic encounter rolls, the 3rd-encounter loss, POI reset to the last unload.
 
-### 9. Truck stash and breakdown
+### 9. Truck stash and breakdown ✅
 - Unloading at the truck moves bag items into the truck stash and queues their breakdown.
 - The breakdown timer runs on play time and turns scrap into elements.
 - A minimal truck panel (also reachable from the overworld) shows the stash, queue and element totals.
