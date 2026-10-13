@@ -29,6 +29,7 @@ var _truck_menu: PanelContainer
 var _truck_status: Label
 var _truck_first_button: Button
 var _loot: LootWindow
+var _workshop: Workshop
 var _door_menu: PanelContainer
 var _door_first_button: Button
 ## The locked door the Unlock popup is for.
@@ -78,7 +79,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _loot.visible:
+	if _loot.visible or _workshop.visible:
 		return
 	if event.is_action_pressed("exploration_menu") and not _truck_menu.visible and not _door_menu.visible:
 		get_viewport().set_input_as_handled()
@@ -274,11 +275,11 @@ func _refresh_markers() -> void:
 
 
 func _menu_open() -> bool:
-	return _panel.visible or _truck_menu.visible or _door_menu.visible or _loot.visible
+	return _panel.visible or _truck_menu.visible or _door_menu.visible or _loot.visible or _workshop.visible
 
 
 ## `focus` may be null when the menu sets its own focus.
-func _open_menu(menu: PanelContainer, focus: Button) -> void:
+func _open_menu(menu: Control, focus: Button) -> void:
 	_stop_timer()
 	_panel.visible = menu == _panel
 	_truck_menu.visible = menu == _truck_menu
@@ -294,6 +295,7 @@ func _close_menus() -> void:
 	_truck_menu.visible = false
 	_door_menu.visible = false
 	_loot.close()
+	_workshop.close()
 	_explorer.controls_enabled = true
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if get_viewport().gui_get_focus_owner() != null:
@@ -361,6 +363,7 @@ func _build_ui() -> void:
 	_truck_status = Label.new()
 	truck_box.add_child(_truck_status)
 	_truck_first_button = _button(truck_box, "Unload the bag", _unload)
+	_button(truck_box, "Workshop", _open_workshop)
 	_button(truck_box, "Unload and drive away", _drive_away)
 	_button(truck_box, "Cancel", _close_menus)
 
@@ -377,6 +380,10 @@ func _build_ui() -> void:
 	layer.add_child(_loot)
 	_loot.changed.connect(_refresh)
 	_loot.closed.connect(_close_menus)
+
+	_workshop = Workshop.new()
+	layer.add_child(_workshop)
+	_workshop.closed.connect(_close_menus)
 
 
 ## A panel with a column for its contents; returns the column (the panel is two parents up).
@@ -430,6 +437,11 @@ func _unload() -> void:
 	GameState.unload_at_truck()
 	_refresh()
 	_close_menus()
+
+
+func _open_workshop() -> void:
+	_open_menu(_workshop, null)
+	_workshop.open()
 
 
 func _drive_away() -> void:

@@ -10,7 +10,7 @@ const READABLE_VERSIONS := [1, 2]
 
 
 ## progress (all optional): play_time: float, poi_states: {id: PoiState}, stash: Array[Dictionary],
-## character: String.
+## character: String, refinery: Dictionary (Refinery.to_dict()), elements: {element: int}.
 static func to_json(world_seed: int, visited: Dictionary, truck_position: Vector2, truck_yaw: float,
 		progress := {}) -> String:
 	var ids: Array = visited.keys()
@@ -30,11 +30,14 @@ static func to_json(world_seed: int, visited: Dictionary, truck_position: Vector
 		"pois": pois,
 		"stash": progress.get("stash", []),
 		"character": String(progress.get("character", "")),
+		"refinery": progress.get("refinery", {}),
+		"elements": progress.get("elements", {}),
 	}, "\t")
 
 
 ## Returns {world_seed, visited: Dictionary, truck_position: Vector2, truck_yaw, play_time: float,
-## poi_states: {id: PoiState}, stash: Array[Dictionary], character: String ("" if absent)} or {} when
+## poi_states: {id: PoiState}, stash: Array[Dictionary], character: String ("" if absent),
+## refinery: Variant (raw, for Refinery.from_dict), elements: {element: int}} or {} when
 ## the text isn't a save this version understands (callers then start a fresh game).
 static func from_json(text: String) -> Dictionary:
 	var json := JSON.new()
@@ -71,4 +74,15 @@ static func from_json(text: String) -> Dictionary:
 		"poi_states": poi_states,
 		"stash": ItemStacks.read(data.get("stash")),
 		"character": data.character if data.get("character") is String else "",
+		"refinery": data.get("refinery", {}),
+		"elements": _read_elements(data.get("elements")),
 	}
+
+
+static func _read_elements(data: Variant) -> Dictionary:
+	var out := {}
+	if data is Dictionary:
+		for element: Variant in data:
+			if element is String and (data[element] is float or data[element] is int) and data[element] >= 0:
+				out[element] = int(data[element])
+	return out

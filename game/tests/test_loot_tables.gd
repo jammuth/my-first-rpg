@@ -15,13 +15,15 @@ func test_catalog_is_complete() -> void:
 	for id: String in ItemCatalog.ITEMS:
 		var item: Dictionary = ItemCatalog.ITEMS[id]
 		assert_true(item.stack >= 1, "%s stack size" % id)
-		assert_false(item.yield.is_empty(), "%s breaks down into something" % id)
-		for element: String in item.yield:
-			assert_true(element in ItemCatalog.ELEMENTS, "%s yields unknown %s" % [id, element])
+		assert_true(item.main in ItemCatalog.ELEMENTS, "%s main element" % id)
+		assert_true(item.get("secondary", "metal") in ItemCatalog.ELEMENTS, "%s secondary element" % id)
+		assert_false(ItemCatalog.yield_of(id).is_empty(), "%s breaks down into something" % id)
 	for r in ItemCatalog.Rarity.values():
 		assert_false(ItemCatalog.ids_of(r).is_empty(), "rarity %d has items" % r)
 	assert_eq(ItemCatalog.RARITY_NAMES.size(), 4)
 	assert_eq(ItemCatalog.RARITY_COLORS.size(), 4)
+	assert_eq(ItemCatalog.REFINE_TIME.size(), 4)
+	assert_eq(ItemCatalog.MAIN_YIELD.size(), 4)
 
 
 func test_unknown_items_are_safe() -> void:
@@ -29,13 +31,33 @@ func test_unknown_items_are_safe() -> void:
 	assert_eq(ItemCatalog.stack_size("odd_thing"), 1)
 	assert_eq(ItemCatalog.rarity("odd_thing"), ItemCatalog.Rarity.COMMON)
 	assert_true(ItemCatalog.describe("odd_thing").contains("Unknown scrap"))
+	assert_eq(ItemCatalog.yield_of("odd_thing"), {})
 
 
-func test_rarer_items_yield_rarer_elements() -> void:
+func test_yields_follow_material_and_rarity() -> void:
+	assert_eq(ItemCatalog.yield_of("scrap_metal"), {"metal": 2})
+	assert_eq(ItemCatalog.yield_of("wiring"), {"circuitry": 2, "polymer": 1})
+	assert_eq(ItemCatalog.yield_of("battery"), {"power": 4, "metal": 2})
+	assert_eq(ItemCatalog.yield_of("sensor_module"), {"circuitry": 7, "power": 3})
+	assert_eq(ItemCatalog.yield_of("fusion_coil"), {"power": 12, "metal": 6, "core": 1})
+
+
+func test_rarer_items_yield_more_and_take_longer() -> void:
+	for r in range(1, 4):
+		assert_true(ItemCatalog.MAIN_YIELD[r] > ItemCatalog.MAIN_YIELD[r - 1])
+		assert_true(ItemCatalog.REFINE_TIME[r] > ItemCatalog.REFINE_TIME[r - 1])
+	assert_near(ItemCatalog.refine_time("scrap_metal"), 10.0)
+	assert_near(ItemCatalog.refine_time("drone_core"), 90.0)
 	for id in ItemCatalog.ids_of(ItemCatalog.Rarity.EPIC):
-		assert_true(ItemCatalog.ITEMS[id].yield.has("core"), "%s gives core" % id)
-	for id in ItemCatalog.ids_of(ItemCatalog.Rarity.COMMON):
-		assert_false(ItemCatalog.ITEMS[id].yield.has("core"), "%s gives no core" % id)
+		assert_true(ItemCatalog.yield_of(id).has("core"), "%s gives core" % id)
+	for r in [ItemCatalog.Rarity.COMMON, ItemCatalog.Rarity.UNCOMMON, ItemCatalog.Rarity.RARE]:
+		for id in ItemCatalog.ids_of(r):
+			assert_false(ItemCatalog.yield_of(id).has("core"), "%s gives no core" % id)
+
+
+func test_describe_shows_yield_and_time() -> void:
+	assert_eq(ItemCatalog.describe("battery"),
+		"Battery  ·  Uncommon  ·  stacks to 8  ·  Breaks down into 2 metal, 4 power in 20s")
 
 
 func test_tables_are_consistent() -> void:

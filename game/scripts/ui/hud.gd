@@ -38,6 +38,17 @@ func _ready() -> void:
 	_prompt.visible = false
 	add_child(_prompt)
 
+	var keys := Label.new()
+	keys.text = "Tab / Start: workshop"
+	keys.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+	keys.add_theme_constant_override("outline_size", 6)
+	keys.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	keys.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	keys.offset_left = 20
+	keys.offset_top = -48
+	keys.offset_bottom = -16
+	add_child(keys)
+
 	_panel = PanelContainer.new()
 	_panel.set_anchors_preset(Control.PRESET_CENTER)
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
