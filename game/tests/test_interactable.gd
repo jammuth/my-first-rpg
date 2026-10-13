@@ -81,13 +81,15 @@ func test_prompts_name_the_target() -> void:
 	assert_eq(_crate("c1", Vector2.ZERO).progress_text(), "Searching the crate…")
 	var door := Interactable.make("d1", Interactable.Kind.DOOR, Vector2.ZERO, 0.0, 1.8, 2.0)
 	assert_eq(door.prompt(), "Press E / A to unlock the loot room")
+	assert_eq(door.prompt(true), "Press E / A to open the loot room")
+	assert_eq(_crate("c1", Vector2.ZERO).prompt(true), "Press E / A to open the crate")
 
 
-func test_placeholder_loot_is_fixed_per_spot() -> void:
-	var a := _crate("c12", Vector2.ZERO).placeholder_loot()
-	assert_eq(a, _crate("c12", Vector2.ONE).placeholder_loot())
-	assert_eq(a[0].id, "scrap_metal")
-	assert_true(a[0].count >= 1 and a[0].count <= 3)
+func test_loot_kind_matches_a_table() -> void:
+	var door := Interactable.make("d1", Interactable.Kind.DOOR, Vector2.ZERO, 0.0, 1.8, 2.0)
+	assert_eq(door.loot_kind(), "loot_room")
+	assert_eq(_crate("c1", Vector2.ZERO).loot_kind(), "crate")
+	assert_true(LootTables.STACKS.has(door.loot_kind()))
 
 
 func test_timer_runs_to_completion_once() -> void:

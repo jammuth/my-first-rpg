@@ -32,6 +32,7 @@ func test_v2_round_trips_exploration_progress() -> void:
 	var state := PoiState.new()
 	state.looted = {"crate_1": 42.0}
 	state.unlocked = {"door_1": true}
+	state.contents = {"crate_1": [{"id": "power_cell", "count": 1}] as Array[Dictionary]}
 	var stash: Array[Dictionary] = [{"id": "scrap_metal", "count": 7}]
 	var text := SaveGame.to_json(9, {}, Vector2.ZERO, 0.0, {
 		"play_time": 123.5, "poi_states": {"2_3": state, "empty": PoiState.new()}, "stash": stash})
@@ -40,6 +41,7 @@ func test_v2_round_trips_exploration_progress() -> void:
 	assert_eq(data.poi_states.keys(), ["2_3"], "empty POI states are not written")
 	assert_eq(data.poi_states["2_3"].looted, {"crate_1": 42.0})
 	assert_eq(data.poi_states["2_3"].unlocked, {"door_1": true})
+	assert_eq(data.poi_states["2_3"].contents, state.contents)
 	assert_eq(data.stash, stash)
 
 

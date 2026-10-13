@@ -69,17 +69,6 @@ static func from_json(text: String) -> Dictionary:
 		"truck_yaw": float(truck.yaw),
 		"play_time": play_time if play_time is float and play_time >= 0.0 else 0.0,
 		"poi_states": poi_states,
-		"stash": _read_stacks(data.get("stash")),
+		"stash": ItemStacks.read(data.get("stash")),
 		"character": data.character if data.get("character") is String else "",
 	}
-
-
-static func _read_stacks(data: Variant) -> Array[Dictionary]:
-	var stacks: Array[Dictionary] = []
-	if not data is Array:
-		return stacks
-	for entry: Variant in data:
-		if entry is Dictionary and entry.get("id") is String and entry.get("count") is float and entry.count >= 1.0:
-			var item: Array[Dictionary] = [{"id": entry.id, "count": int(entry.count)}]
-			ItemStacks.merge(stacks, item)
-	return stacks

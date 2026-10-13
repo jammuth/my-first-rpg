@@ -28,6 +28,7 @@ var _first_button: Button
 var _truck_menu: PanelContainer
 var _truck_status: Label
 var _truck_first_button: Button
+var _loot: LootWindow
 var _session: ExplorationSession
 var _explorer: Explorer
 var _camera: ChaseCamera
@@ -73,6 +74,8 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _loot.visible:
+		return
 	if event.is_action_pressed("exploration_menu") and not _truck_menu.visible:
 		get_viewport().set_input_as_handled()
 		if _panel.visible:
@@ -85,6 +88,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif not _menu_open() and event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
 		_on_interact()
+	elif not _menu_open() and event.is_action_pressed("inventory"):
+		get_viewport().set_input_as_handled()
+		_open_bag()
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventMouseButton and event.pressed and not _menu_open():
@@ -109,14 +115,20 @@ func _available() -> Array[Interactable]:
 	return _interactables.filter(func(it: Interactable) -> bool: return not _is_done(it))
 
 
-func _is_done(it: Interactable) -> bool:
+## Searched or unlocked, so using it again skips straight to the loot window.
+func _is_opened(it: Interactable) -> bool:
 	match it.kind:
 		Interactable.Kind.CONTAINER:
-			return _session.is_looted(it.id)
+			return _session.is_opened(it.id)
 		Interactable.Kind.DOOR:
 			return _session.is_unlocked(it.id)
 		_:
 			return false
+
+
+## Opened with nothing left inside, so there's no reason to prompt for it.
+func _is_done(it: Interactable) -> bool:
+	return it.kind != Interactable.Kind.TRUCK and _is_opened(it) and _session.is_emptied(it.id)
 
 
 func _on_interact() -> void:
@@ -126,6 +138,8 @@ func _on_interact() -> void:
 		return
 	elif _target.kind == Interactable.Kind.TRUCK:
 		_open_menu(_truck_menu, _truck_first_button)
+	elif _is_opened(_target):
+		_open_loot(_target)
 	else:
 		_timer = InteractionTimer.new(_target)
 		_explorer.interacting = true
@@ -139,9 +153,20 @@ func _stop_timer() -> void:
 func _complete(it: Interactable) -> void:
 	if it.kind == Interactable.Kind.DOOR:
 		_session.unlock(it.id)
-	# A loot room's haul is booked under its door's id until loot rooms get their own loot window.
-	_session.loot(it.id, it.placeholder_loot(), GameState.play_time)
+	_open_loot(it)
+
+
+func _open_loot(it: Interactable) -> void:
+	var rolled := LootTables.roll(GameState.world_seed, level.poi, it.id, it.loot_kind())
+	var contents := _session.open(it.id, rolled, GameState.play_time)
+	_open_menu(_loot, null)
+	_loot.open_container(it.title(), contents, _session.bag)
 	_refresh()
+
+
+func _open_bag() -> void:
+	_open_menu(_loot, null)
+	_loot.open_bag(_session.bag)
 
 
 func _show_prompt() -> void:
@@ -150,7 +175,7 @@ func _show_prompt() -> void:
 		_prompt.text = "%s    (E / A or move to cancel)" % _timer.target.progress_text()
 		_progress.value = _timer.fraction()
 	else:
-		_prompt.text = _target.prompt() if _target != null else ""
+		_prompt.text = _target.prompt(_is_opened(_target)) if _target != null else ""
 
 
 func _build_world() -> void:
@@ -228,30 +253,34 @@ func _refresh_markers() -> void:
 			continue
 		var label: Label3D = _markers[it.id]
 		var done := _is_done(it)
-		if it.kind == Interactable.Kind.DOOR:
-			label.text = "OPEN" if done else "LOOT ROOM"
-			label.modulate = DONE_COLOR if done else DOOR_COLOR
-		else:
-			label.text = "SEARCHED" if done else it.label.to_upper()
-			label.modulate = DONE_COLOR if done else CONTAINER_COLOR
+		var text := "LOOT ROOM" if it.kind == Interactable.Kind.DOOR else it.label.to_upper()
+		if done:
+			text = "EMPTY"
+		elif _is_opened(it):
+			text += " (%d left)" % _session.contents(it.id).size()
+		label.text = text
+		label.modulate = DONE_COLOR if done else (DOOR_COLOR if it.kind == Interactable.Kind.DOOR else CONTAINER_COLOR)
 
 
 func _menu_open() -> bool:
-	return _panel.visible or _truck_menu.visible
+	return _panel.visible or _truck_menu.visible or _loot.visible
 
 
+## `focus` may be null when the menu sets its own focus.
 func _open_menu(menu: PanelContainer, focus: Button) -> void:
 	_stop_timer()
 	_panel.visible = menu == _panel
 	_truck_menu.visible = menu == _truck_menu
 	_explorer.controls_enabled = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	focus.grab_focus()
+	if focus != null:
+		focus.grab_focus()
 
 
 func _close_menus() -> void:
 	_panel.visible = false
 	_truck_menu.visible = false
+	_loot.close()
 	_explorer.controls_enabled = true
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if get_viewport().gui_get_focus_owner() != null:
@@ -262,7 +291,7 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var keys := Label.new()
-	keys.text = "E / A: interact    Tab / Start: debug actions    V / R3: shoulder view    Shift / L3: run"
+	keys.text = "E / A: interact    I / Y: bag    Tab / Start: debug actions    V / R3: shoulder view    Shift / L3: run"
 	_outline(keys)
 	keys.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	keys.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -321,6 +350,11 @@ func _build_ui() -> void:
 	_truck_first_button = _button(truck_box, "Unload the bag", _unload)
 	_button(truck_box, "Unload and drive away", _drive_away)
 	_button(truck_box, "Cancel", _close_menus)
+
+	_loot = LootWindow.new()
+	layer.add_child(_loot)
+	_loot.changed.connect(_refresh)
+	_loot.closed.connect(_close_menus)
 
 
 ## A panel with a column for its contents; returns the column (the panel is two parents up).
@@ -384,11 +418,11 @@ func _drive_away() -> void:
 
 func _refresh() -> void:
 	var searched := _interactables.filter(func(it: Interactable) -> bool:
-		return it.kind == Interactable.Kind.CONTAINER and _is_done(it)).size()
+		return it.kind == Interactable.Kind.CONTAINER and _is_opened(it)).size()
 	var opened := _interactables.filter(func(it: Interactable) -> bool:
-		return it.kind == Interactable.Kind.DOOR and _is_done(it)).size()
-	var stash := "Bag: %d scrap\nTruck stash: %d scrap" % [
-		ItemStacks.total(_session.bag), ItemStacks.total(GameState.truck_stash)]
+		return it.kind == Interactable.Kind.DOOR and _is_opened(it)).size()
+	var stash := "Bag: %d / %d slots\nTruck stash: %d items" % [
+		_session.bag.used(), _session.bag.capacity(), ItemStacks.total(GameState.truck_stash)]
 	_truck_status.text = stash
 	_status.text = "%s\nSearched: %d / %d    Loot rooms open: %d / %d\nEncounters this run: %d" % [
 		stash, searched, level.containers.size(), opened, level.loot_rooms.size(), _session.encounters]
