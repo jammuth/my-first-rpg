@@ -95,3 +95,12 @@ func test_dropping_into_a_banked_empty_container_is_kept_until_unload() -> void:
 	s.bank()
 	assert_eq(state.contents.c1, [{"id": "wiring", "count": 2}] as Array[Dictionary])
 	assert_eq(state.looted.c1, 3.0, "first-opened time is kept")
+
+
+func test_defeat_keeps_what_the_drone_has_seen() -> void:
+	var s := ExplorationSession.new("1_2", PoiState.new())
+	ScanRules.record(["c1", "d2"] as Array[String], s.poi_state.seen)
+	_loot(s, "c1", 2)
+	s.defeat()
+	assert_eq(s.poi_state.seen, {"c1": true, "d2": true})
+	assert_false(s.is_opened("c1"), "the loot itself still resets")
