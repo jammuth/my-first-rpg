@@ -30,6 +30,38 @@ func test_drone_eases_in_and_snaps_when_far() -> void:
 	assert_eq(DroneMotion.step(Vector3.ZERO, Vector3(50, 0, 0), 0.016), Vector3(50, 0, 0))
 
 
+func test_left_side_mirrors_the_right() -> void:
+	var r := DroneMotion.hover_point(Vector3.ZERO, Vector2(0, -1), 0.0, DroneMotion.RIGHT)
+	var l := DroneMotion.hover_point(Vector3.ZERO, Vector2(0, -1), 0.0, DroneMotion.LEFT)
+	assert_near(r.x, -l.x)
+	assert_near(r.z, l.z)
+
+
+func test_side_stays_put_while_clear() -> void:
+	assert_eq(DroneMotion.choose_side(DroneMotion.RIGHT, 1.0, 1.0), DroneMotion.RIGHT)
+	assert_eq(DroneMotion.choose_side(DroneMotion.LEFT, 1.0, 1.0), DroneMotion.LEFT, "no flip back once moved")
+	assert_eq(DroneMotion.choose_side(DroneMotion.LEFT, 0.2, 1.0), DroneMotion.LEFT, "left still clear, right blocked")
+
+
+func test_side_switches_away_from_a_wall() -> void:
+	assert_eq(DroneMotion.choose_side(DroneMotion.RIGHT, 0.3, 1.0), DroneMotion.LEFT)
+	assert_eq(DroneMotion.choose_side(DroneMotion.LEFT, 1.0, 0.0), DroneMotion.RIGHT)
+
+
+func test_boxed_in_keeps_the_roomier_side() -> void:
+	assert_eq(DroneMotion.choose_side(DroneMotion.RIGHT, 0.5, 0.4), DroneMotion.RIGHT)
+	assert_eq(DroneMotion.choose_side(DroneMotion.RIGHT, 0.2, 0.6), DroneMotion.LEFT)
+
+
+func test_pull_in_stops_short_of_the_wall() -> void:
+	var head := Vector3(0, 1.5, 0)
+	var hover := Vector3(2, 2, 0)
+	assert_eq(DroneMotion.pull_in(head, hover, 1.0), hover)
+	assert_true(DroneMotion.pull_in(head, hover, 0.5).is_equal_approx(Vector3(1, 1.75, 0)))
+	assert_eq(DroneMotion.pull_in(head, hover, 0.0), head, "no room at all: stays at the head")
+	assert_eq(DroneMotion.pull_in(head, hover, 3.0), hover, "clamped")
+
+
 func test_scan_range() -> void:
 	assert_true(ScanRules.in_range(Vector2.ZERO, Vector2(0, 25)))
 	assert_false(ScanRules.in_range(Vector2.ZERO, Vector2(0, 25.1)))
