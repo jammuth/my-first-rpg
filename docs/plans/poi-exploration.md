@@ -1,6 +1,6 @@
 # Plan: POI exploration on foot
 
-Status: **In progress**. Steps 1–5 and 9 are done. Step 6 is cut down to an Unlock button for now, and step 7 (exploration drone) is next. This is roadmap milestone 2 and comes before battles.
+Status: **In progress**. Steps 1–5, 7 and 9 are done. Step 6 is cut down to an Unlock button for now, and step 8 (random encounters) is next. This is roadmap milestone 2 and comes before battles.
 
 ## Goal
 Entering a POI switches from the truck to a masked explorer on foot. The explorer searches the POI's level for scrap, gets into locked loot rooms with keys or by hacking, and survives random encounters. Loot only counts once it's carried back to the truck. There it breaks down over time into the elements that will later build drone parts.
@@ -16,7 +16,7 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 - **Exploration drone:** follows the explorer and does the hacking and scanning. In v1 it has fixed abilities and no stats.
 - **Combat:** the explorer never attacks. Encounters are drone battles, handled by a placeholder screen until milestone 3.
 - **Buildings are not walk-in.** A locked door opens a **loot window** listing the container's contents, extraction-shooter style.
-- **Bag:** 15 slots in 3 rows of 5, with item stacks and colour-coded rarity, similar to Arc Raiders. No grid packing (it's awkward on a gamepad). The exploration drone adds extra slots on top (see Proposed defaults). A weight limit is parked for later.
+- **Bag:** 8 slots in 2 rows of 4 (changed 2026-10-14 from 15), with item stacks and colour-coded rarity, similar to Arc Raiders. No grid packing (it's awkward on a gamepad). The drone adds no slots. A weight limit is parked for later.
 - **Searching (step 4):** press E / A once and the bar fills by itself. Moving, pressing again or losing the target cancels it. Unlocking a door works the same way. Interacting with the truck opens a menu: Unload / Unload and drive away / Cancel.
 - **Loot window (step 5):**
   - Containers hold 1–4 stacks by kind, and a loot room holds 4–6.
@@ -47,14 +47,21 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
   - It opens when the symbols match the code.
   - **Cost: time.** The encounter meter keeps filling while the minigame is open. There's no alarm and no failure state.
 - **Encounter types:** rogue drones, raiders and mutated wildlife. Placeholder enemies are invented for now (see step 8) and get fleshed out with battles.
-- **Exploration drone abilities:** scan (highlights containers and keys), hack, and extra bag slots.
+- **Exploration drone abilities:** scan and (later) hack. No bag slots.
+- **Drone scan and minimap (step 7, 2026-10-14):**
+  - The scan is always on, with no button.
+  - A container or loot-room door lights up with a pulsing glow while it's on screen, within 25 m and in line of sight. Line of sight casts three rays from the camera, at the centre and at either side of the object.
+  - Emptied ones stop lighting up.
+  - Loot-room doors get a door frame on their wall, which glows the same way.
+  - A round minimap in the top right turns with the camera. It shows buildings, the truck and the explorer, and pins everything seen, with a ping the first time.
+  - Sightings are saved per POI straight away and kept after a defeat. Emptied pins go grey.
+  - The drone is a placeholder quadcopter made from primitives, beside the explorer's right shoulder.
 - **Truck workbench (breaking scrap down)** is in scope.
 
 ## Proposed defaults (change them if you disagree)
 - **Breakdown timer:** runs on in-game play time (overworld and exploration), not real time while the game is closed. That rules out clock-change exploits.
 - **Elements v1:** metal, circuitry, polymer, power cells, and a rare "core" element. Yields follow each item's material and rarity (see Workshop and refining above).
 - **Rarity tiers:** common, uncommon, rare, epic, with Arc Raiders-like colours.
-- **Drone bag slots:** +5, as one extra row below the 15-slot bag.
 
 ## Where things stand today
 | Area | Current implementation |
@@ -112,9 +119,9 @@ Entering a POI switches from the truck to a masked explorer on foot. The explore
 - Hacking: the drone runs the symbol minigame described under Decided. The code and the starting symbols are deterministic per door, and the starting symbols never already match the code.
 - **Tests:** the key–door graph is always solvable over many seeds; cycling symbols wraps around; the code check; the starting symbols never match; the meter keeps filling while hacking.
 
-### 7. Exploration drone
+### 7. Exploration drone ✅
 - Follows the explorer with simple steering (NavigationAgent if needed) and hovers with a bob.
-- Abilities: scan (highlights containers and keys within a radius), hack (step 6), +5 bag slots.
+- Abilities: scan (highlights containers and loot-room doors in view, pinned on a minimap), hack (step 6, deferred).
 - **Tests:** follow and steering maths (pure parts).
 
 ### 8. Random encounters
