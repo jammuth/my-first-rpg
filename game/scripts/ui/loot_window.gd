@@ -9,7 +9,7 @@ signal changed
 signal closed
 
 const SLOT_SIZE := Vector2(132, 62)
-const BAG_COLUMNS := 5
+const BAG_COLUMNS := 4
 const EMPTY_COLOR := Color(1, 1, 1, 0.08)
 const SELECTED_COLOR := Color(1.0, 0.85, 0.3)
 

@@ -14,13 +14,16 @@ static func create(poi: PoiData, pieces: PoiPieceLibrary) -> PoiSite:
 	site.position = poi.position
 	var body := StaticBody3D.new()
 	site.add_child(body)
-	for item: Dictionary in poi.layout:
+	for i in poi.layout.size():
+		var item: Dictionary = poi.layout[i]
 		var info := pieces.get_info(item.key)
 		var piece: Dictionary = PoiCatalog.piece(item.key)
 		var pivot := Node3D.new()
 		var local: Vector2 = item.position - poi.position_2d()
 		pivot.position = Vector3(local.x, item.y, local.y)
 		pivot.rotation.y = item.yaw
+		# Lets exploration find a container's meshes from its layout index to highlight them.
+		pivot.set_meta("layout_index", i)
 		site.add_child(pivot)
 		var model: Node3D = info.scene.instantiate()
 		model.scale = Vector3.ONE * piece.scale

@@ -1,9 +1,9 @@
 extends TestCase
 
 
-func test_starts_with_fifteen_empty_slots() -> void:
+func test_starts_with_eight_empty_slots() -> void:
 	var bag := Bag.new()
-	assert_eq(bag.capacity(), 15)
+	assert_eq(bag.capacity(), 8)
 	assert_eq(bag.used(), 0)
 	assert_true(bag.is_empty())
 

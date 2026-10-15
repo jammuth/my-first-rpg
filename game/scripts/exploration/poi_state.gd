@@ -9,16 +9,22 @@ var looted: Dictionary = {}
 ## container id -> stacks left behind in it. Opened containers without an entry are empty.
 var contents: Dictionary = {}
 var unlocked: Dictionary = {}
+## Containers and doors the drone has spotted, pinned on the minimap. Knowledge, not loot, so it's
+## kept straight away and survives a defeat.
+var seen: Dictionary = {}
 
 
 func is_empty() -> bool:
-	return looted.is_empty() and contents.is_empty() and unlocked.is_empty()
+	return looted.is_empty() and contents.is_empty() and unlocked.is_empty() and seen.is_empty()
 
 
 func to_dict() -> Dictionary:
 	var doors: Array = unlocked.keys()
 	doors.sort()
-	return {"looted": looted.duplicate(), "contents": contents.duplicate(true), "unlocked": doors}
+	var spotted: Array = seen.keys()
+	spotted.sort()
+	return {"looted": looted.duplicate(), "contents": contents.duplicate(true), "unlocked": doors,
+		"seen": spotted}
 
 
 ## Skips malformed entries rather than rejecting the whole POI.
@@ -42,4 +48,9 @@ static func from_dict(data: Variant) -> PoiState:
 		for id: Variant in unlocked_data:
 			if id is String:
 				state.unlocked[id] = true
+	var seen_data: Variant = data.get("seen")
+	if seen_data is Array:
+		for id: Variant in seen_data:
+			if id is String:
+				state.seen[id] = true
 	return state

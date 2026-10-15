@@ -10,10 +10,6 @@ const TRUCK_SCENE := preload("res://scenes/truck.tscn")
 const EXPLORER_SCENE := preload("res://scenes/explorer.tscn")
 const SUN_SCENE := preload("res://scenes/desert_sun.tscn")
 const BLOWING_SAND := preload("res://scripts/world/blowing_sand.gd")
-const MARKER_HEIGHT := 2.6
-const CONTAINER_COLOR := Color(1.0, 0.82, 0.35)
-const DOOR_COLOR := Color(0.45, 0.85, 1.0)
-const DONE_COLOR := Color(0.6, 0.6, 0.6, 0.6)
 ## Stick deflection past this counts as walking off, which cancels a search.
 const MOVE_DEADZONE := 0.2
 
@@ -41,8 +37,7 @@ var _chunks: ChunkManager
 var _env: Environment
 var _sun: DirectionalLight3D
 var _interactables: Array[Interactable] = []
-## Interactable id -> Label3D over it.
-var _markers := {}
+var _minimap: Minimap
 var _target: Interactable
 var _timer: InteractionTimer
 
@@ -76,6 +71,10 @@ func _process(delta: float) -> void:
 			_stop_timer()
 			_complete(finished)
 	_show_prompt()
+	_minimap.explorer_position = _explorer_xz()
+	_minimap.explorer_facing = _explorer.facing()
+	var look := -_camera.camera().global_basis.z
+	_minimap.camera_yaw = atan2(-look.x, -look.z)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -241,37 +240,21 @@ func _build_world() -> void:
 	sand.set("target_path", NodePath("../Explorer"))
 	add_child(sand)
 
-	for it in _interactables:
-		if it.kind != Interactable.Kind.TRUCK:
-			_markers[it.id] = _add_marker(it.position)
+	var drone := Drone.new()
+	drone.name = "Drone"
+	drone.explorer = _explorer
+	add_child(drone)
 
-
-## Placeholder labels over search spots and loot-room doors until they get proper highlights.
-func _add_marker(world: Vector2) -> Label3D:
-	var label := Label3D.new()
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.font_size = 48
-	label.pixel_size = 0.02
-	label.outline_size = 12
-	label.no_depth_test = false
-	label.position = _local(world, _chunks.terrain.height_at(world.x, world.y) + MARKER_HEIGHT)
-	add_child(label)
-	return label
-
-
-func _refresh_markers() -> void:
-	for it in _interactables:
-		if not _markers.has(it.id):
-			continue
-		var label: Label3D = _markers[it.id]
-		var done := _is_done(it)
-		var text := "LOOT ROOM" if it.kind == Interactable.Kind.DOOR else it.label.to_upper()
-		if done:
-			text = "EMPTY"
-		elif _is_opened(it):
-			text += " (%d left)" % _session.contents(it.id).size()
-		label.text = text
-		label.modulate = DONE_COLOR if done else (DOOR_COLOR if it.kind == Interactable.Kind.DOOR else CONTAINER_COLOR)
+	var scanner := DroneScanner.new()
+	scanner.name = "DroneScanner"
+	scanner.level = level
+	scanner.interactables = _interactables
+	scanner.session = _session
+	scanner.explorer = _explorer
+	scanner.camera = _camera.camera()
+	scanner.chunks = _chunks
+	scanner.is_done = _is_done
+	add_child(scanner)
 
 
 func _menu_open() -> bool:
@@ -385,6 +368,16 @@ func _build_ui() -> void:
 	layer.add_child(_workshop)
 	_workshop.closed.connect(_close_menus)
 
+	_minimap = Minimap.new()
+	_minimap.level = level
+	_minimap.interactables = _interactables
+	_minimap.session = _session
+	_minimap.is_done = _is_done
+	layer.add_child(_minimap)
+	# Behind the menus, which are added before it, so it's moved to the back of the layer.
+	layer.move_child(_minimap, 0)
+	(get_node("DroneScanner") as DroneScanner).first_seen.connect(_minimap.ping)
+
 
 ## A panel with a column for its contents; returns the column (the panel is two parents up).
 func _menu(layer: CanvasLayer, centred: bool) -> VBoxContainer:
@@ -460,4 +453,4 @@ func _refresh() -> void:
 	_truck_status.text = stash
 	_status.text = "%s\nSearched: %d / %d    Loot rooms open: %d / %d\nEncounters this run: %d" % [
 		stash, searched, level.containers.size(), opened, level.loot_rooms.size(), _session.encounters]
-	_refresh_markers()
+	_minimap.queue_redraw()
