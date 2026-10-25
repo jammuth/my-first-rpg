@@ -4,7 +4,7 @@ Order of milestones for the MVP and beyond. Each milestone gets its own plan in 
 
 | # | Milestone | Status | Plan |
 |---|---|---|---|
-| 1 | Overworld: world generation and driving | ✅ Done (PRs #1–#5) | [desert-visuals.md](plans/desert-visuals.md) (visuals phase) |
+| 1 | Overworld: world generation and driving | ✅ Done (PRs #1–#5) | [overworld.md](plans/overworld.md), [desert-visuals.md](plans/desert-visuals.md) (visuals phase) |
 | 2 | POI exploration on foot | 🚧 In progress (steps 1–5, 7 and 9 of 10 done) | [poi-exploration.md](plans/poi-exploration.md) |
 | 3 | Turn-based drone battles | ⏳ Not started | — |
 | 4 | Drone building and upgrading | ⏳ Not started | — |
